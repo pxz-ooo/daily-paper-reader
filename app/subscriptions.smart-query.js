@@ -60,18 +60,19 @@ window.SubscriptionsSmartQuery = (function () {
     '4) keywords are used for BM25 recall and should be meaningful atomic noun phrases, normally 2-4 English words.',
     '5) Do NOT output acronym-only or abbreviation-only keywords such as "rl", "xrl", "sr", "llm". Expand them to full phrases like "reinforcement learning" or "large language model".',
     '6) Do NOT output incomplete modifier phrases ending with generic words like "driven", "based", "related", "guided", "enhanced", "for", or "with".',
-    '7) Keep keywords atomic and avoid packing multiple concepts into one phrase.',
-    '8) Do not include concrete example topics in the prompt.',
-    '9) intent_queries: output 1-4 actionable intent queries. The query field MUST be English only; query_cn should be Chinese.',
-    '10) intent_queries must be specific semantic search sentences, not acronym-only strings.',
-    '11) Do not output extra fields like must_have / optional / exclude / rewrite_for_embedding.',
-    '12) Return pure JSON only, no explanations.',
-    '13) intent_queries should be concise, timeless, and must not include years or year-like tokens.',
-    '14) Tag suggestion must be concise: at most 12 characters total, counting hyphens.',
-    '15) Tag suggestion must NOT include any year. Do not append or embed years (including digits like 2026/2025/2024 etc.) in tag.',
-    '16) Tag suggestion must be English words or an English acronym only. Never output Chinese in tag.',
-    '17) Tag suggestion must use hyphen-separated words when multiple words are needed, for example "reinforcement-learning". Do not use spaces or underscores in tag.',
-    '18) If the descriptive tag would exceed 12 characters, output an English acronym or a shorter hyphenated label.',
+    '7) Do NOT output standalone adjective/modifier keywords like "explainable", "interpretable", "deep", or "neural"; attach the target concept, e.g. "explainable reinforcement learning".',
+    '8) Keep keywords atomic and avoid packing multiple concepts into one phrase.',
+    '9) Do not include concrete example topics in the prompt.',
+    '10) intent_queries: output 1-4 actionable intent queries. The query field MUST be English only; query_cn should be Chinese.',
+    '11) intent_queries must be specific semantic search sentences, not acronym-only strings.',
+    '12) Do not output extra fields like must_have / optional / exclude / rewrite_for_embedding.',
+    '13) Return pure JSON only, no explanations.',
+    '14) intent_queries should be concise, timeless, and must not include years or year-like tokens.',
+    '15) Tag suggestion must be concise: at most 12 characters total, counting hyphens.',
+    '16) Tag suggestion must NOT include any year. Do not append or embed years (including digits like 2026/2025/2024 etc.) in tag.',
+    '17) Tag suggestion must be English words or an English acronym only. Never output Chinese in tag.',
+    '18) Tag suggestion must use hyphen-separated words when multiple words are needed, for example "reinforcement-learning". Do not use spaces or underscores in tag.',
+    '19) If the descriptive tag would exceed 12 characters, output an English acronym or a shorter hyphenated label.',
   ].join('\n');
 
   const normalizeText = (v) => String(v || '').trim();
@@ -772,6 +773,7 @@ window.SubscriptionsSmartQuery = (function () {
       'advanced',
       'robust',
       'efficient',
+      'explainable',
       'interpretable',
       'hybrid',
       'scalable',
@@ -793,6 +795,7 @@ window.SubscriptionsSmartQuery = (function () {
       const text = normalizeText(s);
       if (!text) return true;
       if (isWeakAcronymKeyword(text)) return true;
+      if (!/\s/.test(text) && genericModifierSet.has(text.toLowerCase())) return true;
       return /\b(driven|based|related|guided|enhanced|oriented|focused|for|with)$/i.test(text);
     };
 
@@ -829,7 +832,7 @@ window.SubscriptionsSmartQuery = (function () {
 
     // 关键词召回去冗余：
     // 若已有核心术语（如 symbolic regression），则将 "X symbolic regression" 归一为 "X"；
-    // 若 X 只是泛形容词，则直接丢弃该冗余词条。
+    // 但不能把 "explainable reinforcement learning" 这类完整概念裁成单个泛形容词。
     const plainList = keywords.map((k) => normalizePhrase(k.keyword || ''));
     const plainSet = new Set(plainList);
     const anchorCandidates = new Set();
@@ -860,8 +863,8 @@ window.SubscriptionsSmartQuery = (function () {
           const prefixPlain = trimLeadingConnector(plain.slice(0, idx));
           if (!prefixPlain) return null;
           const parts = prefixPlain.split(' ').filter(Boolean);
-          if (parts.length === 1 && genericModifierSet.has(parts[0])) {
-            return null;
+          if (parts.length === 1) {
+            return k;
           }
           return {
             ...k,

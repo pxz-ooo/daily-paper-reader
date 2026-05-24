@@ -26,6 +26,7 @@ function testPromptRequiresEnglishRetrievalFieldsAndChineseCnFields() {
   assert.match(prompt, /The query field MUST be English only/);
   assert.match(prompt, /Do NOT output acronym-only/);
   assert.match(prompt, /meaningful atomic noun phrases/);
+  assert.match(prompt, /standalone adjective\/modifier keywords/);
   assert.match(prompt, /hyphen-separated words/);
   assert.match(prompt, /English words or an English acronym only/);
   assert.match(prompt, /at most 12 characters/);
@@ -128,9 +129,28 @@ function testGeneratedCandidatesDropWeakAcronymKeywords() {
   );
 }
 
+function testGeneratedCandidatesDoNotCollapseConceptToSingleModifier() {
+  const normalized = normalizeGenerated({
+    tag: 'xrl-sr',
+    description: '可解释强化学习驱动符号回归方程发现',
+    keywords: [
+      { keyword: 'explainable reinforcement learning', query: 'explainable reinforcement learning for symbolic regression', keyword_cn: '可解释强化学习' },
+      { keyword: 'reinforcement learning', query: 'reinforcement learning equation discovery', keyword_cn: '强化学习' },
+      { keyword: 'symbolic regression', query: 'symbolic regression equation discovery', keyword_cn: '符号回归' },
+      { keyword: 'explainable', query: 'explainable reinforcement learning', keyword_cn: '可解释强化学习' },
+    ],
+  });
+
+  assert.deepEqual(
+    normalized.keywords.map((item) => item.keyword),
+    ['explainable reinforcement learning', 'reinforcement learning', 'symbolic regression'],
+  );
+}
+
 testPromptRequiresEnglishRetrievalFieldsAndChineseCnFields();
 testSuggestedTagIsEnglishAndAtMostTwelveChars();
 testGeneratedCandidatesKeepChineseOutOfRetrievalFields();
 testGeneratedCandidatesDropWeakAcronymKeywords();
+testGeneratedCandidatesDoNotCollapseConceptToSingleModifier();
 
 console.log('subscriptions smart query tests passed');
