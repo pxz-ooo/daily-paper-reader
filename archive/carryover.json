@@ -1,266 +1,12 @@
 {
-  "generated_at": "2026-06-09T15:27:35.013414+00:00",
-  "updated_date": "20260511-20260609",
+  "generated_at": "2026-06-09T22:03:14.768474+00:00",
+  "updated_date": "20260609",
   "carryover_days": 9,
   "tag_states": {
     "inf-accel": {
-      "updated_date": "20260511-20260609",
+      "updated_date": "20260609",
       "carryover_days": 9,
       "items": [
-        {
-          "id": "2605.26558v1",
-          "source": "arxiv",
-          "title": "Cassandra: Enabling Reasoning LLMs at Edge via Self-Speculative Decoding",
-          "abstract": "Speculative decoding has emerged as a promising lossless approach for accelerating Large Language Models (LLMs). As reasoning LLMs increasingly suffer from decode-stage overhead and approximation-based methods degrade accuracy, lossless speculative decoding has become essential for efficient inference. However, existing methods still struggle to deliver strong low-batch performance without additional training, limiting practical deployment on consumer devices. To address this challenge, we propose Cassandra, an algorithm-hardware co-designed self-speculative decoding framework optimized for low-batch scenarios. Cassandra constructs a high-performance, training-free draft model through fine-grained data selection. Using optimized pruning and mantissa truncation, it identifies the most salient values in both model weights and the Key-Value (KV) cache, enabling rapid candidate token generation before full-precision parallel verification. Unlike prior self-speculative decoding methods based on layer skipping or structured KV compression, Cassandra achieves significantly higher efficiency. To further reduce the overhead of format conversion between Cassandra representations and standard floating-point formats, we also introduce a lightweight encoder-decoder hardware module designed for seamless integration with commercial GPUs and NPUs. Experimental results show that Cassandra achieves up to 2.41x speedup over the BF16 baseline without additional training. Furthermore, on Llama 3 8B running on an NVIDIA GeForce RTX 4090, Cassandra generates 1.81x more tokens under the same memory budget compared to Eagle-3, a state-of-the-art speculative decoding method.",
-          "authors": [
-            "Soongyu Choi",
-            "Yuntae Kim",
-            "Muyoung Son",
-            "Joo-Young Kim"
-          ],
-          "primary_category": "cs.AR",
-          "categories": [
-            "cs.AR"
-          ],
-          "published": "2026-05-26T05:12:44+00:00",
-          "link": "https://arxiv.org/pdf/2605.26558v1",
-          "tags": [
-            "keyword:inf-accel",
-            "query:inf-accel"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "self-speculative decoding for edge deployment",
-          "llm_evidence_cn": "面向边缘设备的自推测解码",
-          "llm_evidence": "面向边缘设备的自推测解码",
-          "canonical_evidence": "面向边缘设备的自推测解码",
-          "llm_tldr_en": "Cassandra co-designs algorithm and hardware for self-speculative decoding, creating a training-free draft model via data selection and pruning, enabling lossless acceleration on consumer devices.",
-          "llm_tldr_cn": "针对推理LLM在边缘设备上部署时解码开销大且现有推测解码方法在低批次场景下性能不佳的问题，Cassandra提出了算法-硬件协同设计的自推测解码框架。通过细粒度数据选择和优化剪枝构建免训练草稿模型，结合硬件优化，在消费级设备上实现了无损加速，改善了低批次推理效率。",
-          "llm_tldr": "针对推理LLM在边缘设备上部署时解码开销大且现有推测解码方法在低批次场景下性能不佳的问题，Cassandra提出了算法-硬件协同设计的自推测解码框架。通过细粒度数据选择和优化剪枝构建免训练草稿模型，结合硬件优化，在消费级设备上实现了无损加速，改善了低批次推理效率。",
-          "llm_tags": [
-            "query:inf-accel"
-          ],
-          "matched_query_tag": "query:inf-accel",
-          "matched_query_text": "eagle based speculative decoding for LLM inference acceleration",
-          "matched_requirement_id": "req-7",
-          "selection_source": "carryover_cache",
-          "paper_id": "2605.26558v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2605.20104v1",
-          "source": "arxiv",
-          "title": "Draft Less, Retrieve More: Hybrid Tree Construction for Speculative Decoding",
-          "abstract": "Speculative decoding (SD) accelerates large language model inference by leveraging a draft-then-verify paradigm. To maximize the acceptance rate, recent methods construct expansive draft trees, which unfortunately incur severe VRAM bandwidth and computational overheads that bottleneck end-to-end speedups. While dynamic-depth pruning can reduce this latency by removing marginal branches, it also discards potentially valid candidates, preventing the acceptance rate from reaching the upper bound of dense trees. In this paper, we identify a critical opportunity in resource allocation: the transition from dense to pruned drafting frees up significant computational budget. To break this Pareto tradeoff, we introduce Graft, a compensation framework that couples pruning and retrieval as mutually reinforcing operations. Pruning supplies sufficient budget for retrieval, while retrieval compensates for pruning-induced coverage loss and recovers accepted length. By employing a sequential `prune-then-graft' mechanism, Graft attaches highly predictive retrieved tokens into positions opened by pruning, filling the topological gaps with near-zero overhead. Graft is entirely training-free and lossless. Comprehensive evaluations show that Graft establishes a new Pareto frontier across practical deployment settings, including short-context generation, long-context generation, and large-scale models. On short-context benchmarks, it achieves up to 5.41$\\times$ speedup and improves average speedup over EAGLE-3 by up to 21.8% on the large-scale Qwen3-235B. We also provide a preliminary exploration of applying Graft to the DFlash-style block drafting paradigm, offering initial evidence and insights for extending grafting beyond autoregressive draft trees.",
-          "authors": [
-            "Yuhao Shen",
-            "Tianyu Liu",
-            "Xinyi Hu",
-            "Quan Kong",
-            "Baolin Zhang",
-            "Jun Dai",
-            "Jun Zhang",
-            "Shuang Ge",
-            "Lei Chen",
-            "Yue Li",
-            "Mingcheng Wan",
-            "Cong Wang"
-          ],
-          "primary_category": "cs.LG",
-          "categories": [
-            "cs.LG",
-            "cs.AI"
-          ],
-          "published": "2026-05-19T16:55:48+00:00",
-          "link": "https://arxiv.org/pdf/2605.20104v1",
-          "tags": [
-            "keyword:inf-accel",
-            "query:inf-accel"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "hybrid tree construction for speculative decoding",
-          "llm_evidence_cn": "推测解码的混合树构建",
-          "llm_evidence": "推测解码的混合树构建",
-          "canonical_evidence": "推测解码的混合树构建",
-          "llm_tldr_en": "Graft introduces hybrid tree construction that compensates pruned branches with retrieved candidates, breaking the tradeoff between acceptance rate and overhead in speculative decoding.",
-          "llm_tldr_cn": "针对推测解码中稠密草案树导致带宽开销大而稀疏树降低接受率的问题，Graft提出混合树架构：在修剪边缘分支后用检索候选补偿，从而在不增加开销的情况下保持高接受率。该方法打破了传统帕累托权衡，显著提升了端到端加速比。",
-          "llm_tldr": "针对推测解码中稠密草案树导致带宽开销大而稀疏树降低接受率的问题，Graft提出混合树架构：在修剪边缘分支后用检索候选补偿，从而在不增加开销的情况下保持高接受率。该方法打破了传统帕累托权衡，显著提升了端到端加速比。",
-          "llm_tags": [
-            "query:inf-accel"
-          ],
-          "matched_query_tag": "query:inf-accel",
-          "matched_query_text": "eagle based speculative decoding for LLM inference acceleration",
-          "matched_requirement_id": "req-7",
-          "selection_source": "carryover_cache",
-          "paper_id": "2605.20104v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2606.01563v1",
-          "source": "arxiv",
-          "title": "MomentKV: Closing the Directional Gap in KV Cache Eviction for Long-Context Inference",
-          "abstract": "Autoregressive decoding in Transformer-based language models relies on the KV cache, whose memory footprint grows linearly with sequence length and becomes the primary bottleneck for long-context inference. KV cache eviction addresses this by retaining a fixed-size subset of key-value pairs and discarding the rest. We identify that a primary source of output degradation is not the residual attention mass on evicted tokens, which existing methods already minimize, but a directional mismatch between the retained and evicted token sets. Specifically, the evicted tokens in practice are often near-orthogonal to the retained ones. Thus, even a small evicted mass could have an oversized impact on the resulting direction distribution and amplify into substantial output error. This reveals a fundamental limit in existing strategies. To address this, we propose MomentKV, which maintains compact, small-size moment statistics over the evicted token set, including a count, key mean, value mean, and value-key covariance. During eviction, the moment statistics is leveraged to identify tokens already well aligned with and captured by the accumulated summary, keeping the evicted set geometrically regular. During inference, they yield a closed-form first-order approximation of the evicted attention output, forming a mutually reinforcing loop between selective eviction and accurate correction. On LongBench and RULER with LLaMA-3.1-8B-Instruct and Qwen3-4B-Instruct, MomentKV outperforms all baselines at every cache budget, with the largest gains under aggressive compression.",
-          "authors": [
-            "Yu Li",
-            "Binxu Li",
-            "Tian Lan"
-          ],
-          "primary_category": "cs.LG",
-          "categories": [
-            "cs.LG"
-          ],
-          "published": "2026-06-01T02:08:40+00:00",
-          "link": "https://arxiv.org/pdf/2606.01563v1",
-          "tags": [
-            "keyword:inf-accel",
-            "query:inf-accel"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "KV cache eviction addressing directional mismatch",
-          "llm_evidence_cn": "KV缓存驱逐解决方向不匹配",
-          "llm_evidence": "KV缓存驱逐解决方向不匹配",
-          "canonical_evidence": "KV缓存驱逐解决方向不匹配",
-          "llm_tldr_en": "MomentKV identifies directional mismatch between retained and evicted tokens as key degradation source, and proposes eviction strategy that maintains directional alignment for improved long-context inference.",
-          "llm_tldr_cn": "针对长上下文推理中KV缓存驱逐导致输出质量下降的问题，MomentKV发现主要原因是保留与驱逐token集合之间的方向不匹配，而非被忽略的注意力权重。基于此，它提出新的驱逐策略以保持方向对齐，在维持缓存大小固定的条件下显著改善生成质量，为长上下文LLM推理提供了更有效的缓存管理方案。",
-          "llm_tldr": "针对长上下文推理中KV缓存驱逐导致输出质量下降的问题，MomentKV发现主要原因是保留与驱逐token集合之间的方向不匹配，而非被忽略的注意力权重。基于此，它提出新的驱逐策略以保持方向对齐，在维持缓存大小固定的条件下显著改善生成质量，为长上下文LLM推理提供了更有效的缓存管理方案。",
-          "llm_tags": [
-            "query:inf-accel"
-          ],
-          "matched_query_tag": "query:inf-accel",
-          "matched_query_text": "KV cache compression techniques for reducing memory in large language model inference",
-          "matched_requirement_id": "req-5",
-          "selection_source": "carryover_cache",
-          "paper_id": "2606.01563v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2606.07710v1",
-          "source": "arxiv",
-          "title": "WhiFlash: Accelerating Speculative Decoding with Token-Level Cross-Paradigm Routing",
-          "abstract": "The autoregressive nature of large language models (LLMs) remains a significant bottleneck for inference, particularly in complex agentic workloads. While speculative decoding (SD) accelerates inference, current approaches rely on static drafting paradigms, utilising either autoregressive drafting models for reasoning or diffusion-based parallel drafting models for structured outputs. We empirically find that drafting accuracy fluctuates dramatically within a single sequence, leaving significant performance unrealised by static paradigms and coarse-grained routing. To address this volatility, we introduce WhiFlash, the first cross-paradigm SD method that unifies autoregressive and diffusion-based parallel drafting under a single token-level controller. WhiFlash adopts a fine-grained routing mechanism that employs either a lightweight entropy-based or a learned neural policy, both parametrised to provide a tunable balance between expected token gain and latency. To make high-frequency switching computationally viable, we introduce novel cache-management optimisations, Lazy Catch-up and KV-only Prefill, reducing switching overhead to below 7% of per-round latency. By capitalising on the complementary strengths of fundamentally distinct drafting architectures, WhiFlash achieves significantly higher acceptance lengths, yielding category-specific throughput gains of up to 69.6% over the state-of-the-art autoregressive EAGLE-3 and 37.3% over the diffusion-based DFlash.",
-          "authors": [
-            "Young D. Kwon",
-            "Miles Williams",
-            "Rui Li",
-            "Alexandros Kouris",
-            "Stylianos I. Venieris"
-          ],
-          "primary_category": "cs.LG",
-          "categories": [
-            "cs.LG",
-            "cs.AI"
-          ],
-          "published": "2026-06-05T13:23:33+00:00",
-          "link": "https://arxiv.org/pdf/2606.07710v1",
-          "tags": [
-            "keyword:inf-accel",
-            "query:inf-accel"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "cross-paradigm speculative decoding",
-          "llm_evidence_cn": "跨范式推测解码",
-          "llm_evidence": "跨范式推测解码",
-          "canonical_evidence": "跨范式推测解码",
-          "llm_tldr_en": "WhiFlash unifies autoregressive and diffusion-based drafting under token-level routing, dynamically selecting the best paradigm per token to maximize speculative decoding speedup.",
-          "llm_tldr_cn": "针对推测解码中静态草稿范式无法适应单个序列内准确率波动的问题，WhiFlash提出了首个跨范式推测解码方法：在token级别统一自回归和扩散并行草案，通过路由动态选择最佳范式。实验表明，该方法在复杂智能任务中显著提升了加速比，克服了静态范式的性能上限。",
-          "llm_tldr": "针对推测解码中静态草稿范式无法适应单个序列内准确率波动的问题，WhiFlash提出了首个跨范式推测解码方法：在token级别统一自回归和扩散并行草案，通过路由动态选择最佳范式。实验表明，该方法在复杂智能任务中显著提升了加速比，克服了静态范式的性能上限。",
-          "llm_tags": [
-            "query:inf-accel"
-          ],
-          "matched_query_tag": "query:inf-accel",
-          "matched_query_text": "eagle based speculative decoding for LLM inference acceleration",
-          "matched_requirement_id": "req-7",
-          "selection_source": "carryover_cache",
-          "paper_id": "2606.07710v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2606.04302v1",
-          "source": "arxiv",
-          "title": "LazyAttention: Efficient Retrieval-Augmented Generation with Deferred Positional Encoding",
-          "abstract": "Key-value (KV) caching accelerates inference of large language models (LLMs) by reusing past computations for generated tokens. Its importance becomes even greater in long-context applications such as retrieval-augmented generation (RAG) and in-context learning (ICL). However, conventional KV caching embeds positional information directly into the cache, limiting its reusability. Existing solutions either restrict reuse to prefixes or require expensive memory materialization for positional re-encoding. We introduce LazyAttention, a novel attention mechanism that kernelizes deferred positional encoding to enable zero-copy, position-agnostic KV reuse. By adjusting positional encoding within attention kernels on-the-fly, LazyAttention resolves the materialization bottleneck, allowing a single physical KV copy to serve multiple logical requests at arbitrary positions. Leveraging attention kernels tailored for prefilling and decoding, our system achieves significant efficiency improvements: under skewed document distributions, it reduces time-to-first-token (TTFT) by 1.37$\\times$ and increases inference throughput by 1.40$\\times$ compared to the state-of-the-art Block-Attention, while maintaining comparable output quality.",
-          "authors": [
-            "Haocheng Xia",
-            "Mihir Pamnani",
-            "Hanxi Fang",
-            "Supawit Chockchowwat",
-            "Yongjoo Park"
-          ],
-          "primary_category": "cs.CL",
-          "categories": [
-            "cs.CL",
-            "cs.LG"
-          ],
-          "published": "2026-06-03T00:12:22+00:00",
-          "link": "https://arxiv.org/pdf/2606.04302v1",
-          "tags": [
-            "keyword:inf-accel",
-            "query:inf-accel"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "KV cache reuse for decoding acceleration",
-          "llm_evidence_cn": "KV缓存重用加速解码",
-          "llm_evidence": "KV缓存重用加速解码",
-          "canonical_evidence": "KV缓存重用加速解码",
-          "llm_tldr_en": "LazyAttention defers positional encoding to enable zero-copy KV reuse, reducing memory and latency for LLM decoding in RAG.",
-          "llm_tldr_cn": "该论文提出LazyAttention，通过延迟位置编码将位置无关的KV缓存重用集成到注意力内核中，实现零拷贝复用，从而减少LLM解码阶段的内存占用和延迟，特别适用于检索增强生成等长上下文场景。实验表明，该方法在不牺牲质量的前提下显著提升效率。",
-          "llm_tldr": "该论文提出LazyAttention，通过延迟位置编码将位置无关的KV缓存重用集成到注意力内核中，实现零拷贝复用，从而减少LLM解码阶段的内存占用和延迟，特别适用于检索增强生成等长上下文场景。实验表明，该方法在不牺牲质量的前提下显著提升效率。",
-          "llm_tags": [
-            "query:inf-accel"
-          ],
-          "matched_query_tag": "query:inf-accel",
-          "matched_query_text": "optimization of decoding stage in large language model inference",
-          "matched_requirement_id": "req-6",
-          "selection_source": "carryover_cache",
-          "paper_id": "2606.04302v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2605.24144v1",
-          "source": "arxiv",
-          "title": "EVA: Accelerating LLM Decoding via an Efficient Vector Quantization Architecture",
-          "abstract": "Large Language Models (LLMs) have achieved impressive performance across diverse domains but remain inefficient during the autoregressive decoding phase. Unlike the prefill stage, which employs compute-bound GEMM operations, decoding executes a sequence of small GEMV-like computations that are memory-bound and underutilize modern accelerators. Weight-only vector quantization (VQ) has emerged as an effective compression technique that clusters model weights into a shared codebook and replaces the original weight matrix with low-precision indices, enabling 2-bit-level weight compression. While this approach substantially reduces model size and memory bandwidth, it still suffers from two critical inefficiencies: the low utilization of GEMV computation and frequent memory conflicts during codebook lookups.   This paper presents EVA, an efficient vector-quantization-based architecture that addresses both computational and memory bottlenecks in LLM decoding. EVA builds on a simple yet effective insight that combines input-codebook computation with conflict-free memory access. Instead of reconstructing quantized weights from indices, EVA directly performs dot products between input vectors and the weight codebook, transforming LLM decoding from GEMV to GEMM computation. It then performs structured lookups from an intermediate output buffer, eliminating memory bank conflicts. We further design a hardware-software co-optimized architecture specialized for LLM decoding while remaining compatible with conventional prefill execution. Evaluations show that EVA achieves up to 11.17$\\times$ speedup and 7.17$\\times$ higher energy efficiency compared with the SOTA lookup-based architecture, while preserving arithmetic precision after vector quantization. Our code is available at https://github.com/dbw6/Eva.git.",
-          "authors": [
-            "Bowen Duan",
-            "Cong Guo",
-            "Chiyue Wei",
-            "Haoxuan Shan",
-            "Yuzhe Fu",
-            "Xinhua Chen",
-            "Yifan Xu",
-            "Ziyue Zhang",
-            "Changchun Zhou",
-            "Hai Li",
-            "Yiran Chen"
-          ],
-          "primary_category": "cs.AR",
-          "categories": [
-            "cs.AR",
-            "cs.LG"
-          ],
-          "published": "2026-05-22T19:06:22+00:00",
-          "link": "https://arxiv.org/pdf/2605.24144v1",
-          "tags": [
-            "keyword:inf-accel",
-            "query:inf-accel"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "Weight-only vector quantization for decoding speedup",
-          "llm_evidence_cn": "权重量化加速解码阶段",
-          "llm_evidence": "权重量化加速解码阶段",
-          "canonical_evidence": "权重量化加速解码阶段",
-          "llm_tldr_en": "EVA uses vector quantization to compress LLM weights to 2-bit, reducing memory bandwidth and accelerating memory-bound decoding.",
-          "llm_tldr_cn": "EVA针对LLM解码阶段的内存瓶颈，提出高效的向量量化架构，将模型权重压缩至2位级别，显著减少内存带宽需求，从而加速自回归解码。该方法解决了GEMV计算低效的问题，在保持精度的同时提升了吞吐量。",
-          "llm_tldr": "EVA针对LLM解码阶段的内存瓶颈，提出高效的向量量化架构，将模型权重压缩至2位级别，显著减少内存带宽需求，从而加速自回归解码。该方法解决了GEMV计算低效的问题，在保持精度的同时提升了吞吐量。",
-          "llm_tags": [
-            "query:inf-accel"
-          ],
-          "matched_query_tag": "query:inf-accel",
-          "matched_query_text": "optimization of decoding stage in large language model inference",
-          "matched_requirement_id": "req-6",
-          "selection_source": "carryover_cache",
-          "paper_id": "2605.24144v1",
-          "carry_days": 1
-        },
         {
           "id": "2605.28640v1",
           "source": "arxiv",
@@ -299,47 +45,35 @@
           "carry_days": 1
         },
         {
-          "id": "2606.09659v1",
+          "id": "2606.05698v1",
           "source": "arxiv",
-          "title": "End-to-End Context Compression at Scale",
-          "abstract": "Long-context language model inference is bottlenecked by memory, as the KV cache grows with context length. Recent techniques to compress the KV cache fall short: they either degrade model quality substantially or require considerable time and compute to compress a single long prompt. Furthermore, many methods require the input to fit within the target model's context window, and are generally incompatible with modern production inference engines. Encoder-decoder compressors, which map a long token sequence to a shorter sequence of latent embeddings consumed by a decoder, are an appealing alternative in principle. However, existing approaches are not competitive with KV cache compression on the accuracy-efficiency frontier. In this work, we revisit encoder-decoder compression and close this gap. We first perform an architecture search, pre-training many variants from scratch to determine how best to design and train encoder-decoder compressors. Guided by our findings, we continually pre-train a family of 0.6B-encoder, 4B-decoder models on over 350B tokens each, at compression ratios of 1:4, 1:8, and 1:16. We introduce Latent Context Language Models (LCLMs), a family of compressors that improve the Pareto frontier across general-task performance, compression speed, and peak memory usage. We demonstrate that LCLMs serve as efficient backbones for long-horizon agents, letting the agent skim through a compressed long context and adaptively expand relevant segments on demand.",
+          "title": "Rethinking LoRA Memory Through the Lens of KV Cache Compression",
+          "abstract": "Parametric retrieval augmentation encodes document information into lightweight, document-specific modules such as LoRA adapters, reducing the need to include all evidence as input context. However, it remains unclear how this parameter-side memory interacts with context-side memory stored in the KV cache. We study this interaction in document-level question answering by progressively evicting document key-value states and measuring when a document LoRA contributes beyond the retained context. We find that document LoRA adds little when the KV cache is largely intact, but becomes increasingly useful under aggressive compression, recovering 13-21 ROUGE-L points when no document context remains. The gain is largest when the base model encodes the document, and the adapter is applied only during answer generation, suggesting that document LoRA is better understood as decoding-time parametric memory than as a document encoder. Finally, QA-style supervision produces substantially stronger adapters than raw-context next-token-prediction. These results position document LoRA as a complementary memory channel whose value emerges precisely when context-side evidence is scarce.",
           "authors": [
-            "Ang Li",
-            "Sean McLeish",
-            "Haozhe Chen",
-            "Nimit Kalra",
-            "Zaiqian Chen",
-            "Artem Gazizov",
-            "Venkata Anoop Suhas Kumar Morisetty",
-            "Bhavya Kailkhura",
-            "Harshitha Menon",
-            "Zhuang Liu",
-            "Brian R. Bartoldson",
-            "Tom Goldstein",
-            "Sanae Lotfi",
-            "Micah Goldblum",
-            "Pavel Izmailov"
+            "Chunsheng Zuo",
+            "Liaoyaqi Wang",
+            "William Jurayj",
+            "William Fleshman",
+            "Benjamin Van Durme"
           ],
           "primary_category": "cs.CL",
           "categories": [
-            "cs.CL",
-            "cs.AI",
-            "cs.LG"
+            "cs.CL"
           ],
-          "published": "2026-06-08T15:43:16+00:00",
-          "link": "https://arxiv.org/pdf/2606.09659v1",
+          "published": "2026-06-04T04:35:45+00:00",
+          "link": "https://arxiv.org/pdf/2606.05698v1",
           "tags": [
             "keyword:inf-accel",
             "query:inf-accel"
           ],
           "llm_score": 8.0,
-          "llm_evidence_en": "end-to-end context compression reduces KV cache memory",
-          "llm_evidence_cn": "端到端上下文压缩减少KV缓存内存",
-          "llm_evidence": "端到端上下文压缩减少KV缓存内存",
-          "canonical_evidence": "端到端上下文压缩减少KV缓存内存",
-          "llm_tldr_en": "End-to-end encoder-decoder compression effectively reduces KV cache size for long-context LLM inference.",
-          "llm_tldr_cn": "长上下文LLM推理受限于KV缓存内存增长。现有压缩方法要么降低质量，要么计算成本高。本文重新审视编码器-解码器压缩方案，设计了端到端压缩器，能将长token序列映射为短潜在嵌入，在不牺牲准确率的前提下显著减少内存占用，并兼容现代推理引擎。实验表明，该方法在压缩比和模型质量上均优于此前KV缓存压缩方法。",
-          "llm_tldr": "长上下文LLM推理受限于KV缓存内存增长。现有压缩方法要么降低质量，要么计算成本高。本文重新审视编码器-解码器压缩方案，设计了端到端压缩器，能将长token序列映射为短潜在嵌入，在不牺牲准确率的前提下显著减少内存占用，并兼容现代推理引擎。实验表明，该方法在压缩比和模型质量上均优于此前KV缓存压缩方法。",
+          "llm_evidence_en": "KV cache compression interaction with LoRA memory",
+          "llm_evidence_cn": "KV缓存压缩与LoRA内存的交互研究",
+          "llm_evidence": "KV缓存压缩与LoRA内存的交互研究",
+          "canonical_evidence": "KV缓存压缩与LoRA内存的交互研究",
+          "llm_tldr_en": "Studies how KV cache compression affects the utility of parametric memory (LoRA) in document QA, showing LoRA becomes crucial under aggressive compression.",
+          "llm_tldr_cn": "参数化检索增强用LoRA存储文档信息，但与KV缓存内存相互作用。本文在文档问答中逐步丢弃KV状态，发现KV缓存完整时LoRA贡献小，但在强压缩下可恢复13-21 ROUGE-L点，揭示了压缩程度对记忆来源的影响。",
+          "llm_tldr": "参数化检索增强用LoRA存储文档信息，但与KV缓存内存相互作用。本文在文档问答中逐步丢弃KV状态，发现KV缓存完整时LoRA贡献小，但在强压缩下可恢复13-21 ROUGE-L点，揭示了压缩程度对记忆来源的影响。",
           "llm_tags": [
             "query:inf-accel"
           ],
@@ -347,91 +81,170 @@
           "matched_query_text": "KV cache compression techniques for reducing memory in large language model inference",
           "matched_requirement_id": "req-5",
           "selection_source": "carryover_cache",
-          "paper_id": "2606.09659v1",
+          "paper_id": "2606.05698v1",
           "carry_days": 1
         },
         {
-          "id": "2606.08804v1",
+          "id": "2606.04238v1",
           "source": "arxiv",
-          "title": "Q-Delta: Beyond Key-Value Associative State Evolution",
-          "abstract": "Linear attention reformulates sequence modeling as recurrent state evolution, enabling efficient linear-time inference. Under the key-value associative paradigm, existing approaches restrict the role of the query to the readout operation, decoupling it from state evolution. We show that query-conditioned state readout induces a structured value prediction over accumulated memory that complements key-based retrieval. Based on this insight, we propose Q-Delta, a query-aware delta rule that integrates mixed key-query prediction errors into state evolution, enabling jointly corrective dynamics while preserving delta-rule efficiency. We establish stability guarantees for the resulting dynamics and derive a hardware-efficient chunkwise-parallel formulation with a custom Triton implementation. Empirical results demonstrate stable optimization, competitive throughput, and consistent improvements over strong baselines on language modeling and long-context retrieval tasks.",
+          "title": "Recover-LoRA for Aggressive Quantization: Reclaiming Accuracy in 2-Bit Language Models via Low-Rank Adaptation with Knowledge Distillation on Synthetic Data",
+          "abstract": "Aggressive weight quantization to 2-bit precision offers substantial throughput and memory gains for large language model (LLM) inference, but typically incurs severe accuracy degradation. These gains are particularly relevant for edge and on-device deployment, where memory capacity and bandwidth are primary constraints. In this work, we extend Recover-LoRA -- a lightweight, data-free accuracy recovery method originally developed for general model weight corruption -- to the setting of ultra-low-bit quantization. We propose a selective mixed-precision strategy in which only gate and up projection layers of the MLP are quantized to 2-bit (W2), while all other linear layers remain at higher precision, yielding a mixed-precision GateUp configuration. We demonstrate via roofline analysis across three model families (4B--20B) and two hardware platforms that a W4/W2-GateUp deployment (4-bit base with 2-bit gate/up) delivers 7.5--23.3\\% TPS improvement over uniform W4 depending on model and context length, while confining quantization error to a predictable subset of layers. We then apply Recover-LoRA -- training low-rank adapters on the quantized layers via logit distillation with synthetic data -- to recover accuracy lost from 2-bit quantization of the gate and up layers. In a case study on Qwen3-4B, Recover-LoRA achieves 80--95\\% accuracy recovery on 9 of 12 benchmarks, using only 10k synthetic training samples and no labeled data. We further demonstrate that synthetic data performs comparably to curated labeled data for distillation-based recovery, and that recovery generalizes to out-of-distribution evaluation tasks. Our results present Recover-LoRA as a practical post-quantization accuracy recovery tool for aggressive weight compression in deployment settings.",
           "authors": [
-            "Sumin Park",
-            "Seojin Kim",
-            "Noseong Park"
+            "Devleena Das",
+            "Rajeev Patwari",
+            "Elliott Delaye",
+            "Ashish Sirasao"
           ],
-          "primary_category": "cs.AI",
+          "primary_category": "cs.LG",
           "categories": [
-            "cs.AI",
-            "cs.LG"
-          ],
-          "published": "2026-06-07T19:49:01+00:00",
-          "link": "https://arxiv.org/pdf/2606.08804v1",
-          "tags": [
-            "keyword:inf-accel",
-            "query:inf-accel"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "query-aware delta rule for efficient linear attention inference",
-          "llm_evidence_cn": "查询感知delta规则实现高效线性注意力推理",
-          "llm_evidence": "查询感知delta规则实现高效线性注意力推理",
-          "canonical_evidence": "查询感知delta规则实现高效线性注意力推理",
-          "llm_tldr_en": "Q-Delta proposes a query-aware delta rule for linear attention, achieving efficient inference with jointly corrective dynamics.",
-          "llm_tldr_cn": "线性注意力通过递归状态演化实现高效推理，但现有方法将查询与状态演化分离。本文提出Q-Delta，一种查询感知delta规则，将混合键查询预测误差融入状态演化，在保持delta规则效率的同时实现联合修正动态，并推导了硬件高效的分块并行公式。实验表明，Q-Delta在保持线性推理效率的同时提升了模型困惑度。",
-          "llm_tldr": "线性注意力通过递归状态演化实现高效推理，但现有方法将查询与状态演化分离。本文提出Q-Delta，一种查询感知delta规则，将混合键查询预测误差融入状态演化，在保持delta规则效率的同时实现联合修正动态，并推导了硬件高效的分块并行公式。实验表明，Q-Delta在保持线性推理效率的同时提升了模型困惑度。",
-          "llm_tags": [
-            "query:inf-accel"
-          ],
-          "matched_query_tag": "query:inf-accel",
-          "matched_query_text": "recent progress in FlashAttention and PagedAttention for LLM speedup",
-          "matched_requirement_id": "req-9",
-          "selection_source": "carryover_cache",
-          "paper_id": "2606.08804v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2605.25475v1",
-          "source": "arxiv",
-          "title": "IndexMem: Learned KV-Cache Eviction with Latent Memory for Long-Context LLM Inference",
-          "abstract": "Large Language Models (LLMs) are increasingly expected to operate over long contexts, yet standard softmax attention incurs a KV cache that grows linearly with sequence length, quickly becoming the bottleneck for long context inference. A practical remedy is to evict less important KV entries; however, existing eviction policies are largely heuristic and struggle to capture the rich, input-dependent distribution of token importance. In this work, we introduce a learnable indexer that predicts KV importance, enabling more accurate retention of critical tokens. Meanwhile, naively evicting tokens permanently discards their information, leading to irreversible forgetting and degraded retrieval over long ranges. To address this, we propose a lightweight latent memory module that compresses evicted tokens into a compact, online-updated state and provides residual readouts to compensate for the attention contributions lost through KV eviction. Collectively, our method enables accurate long-context inference under a bounded KV budget, delivering consistent improvements on RULER (4K/16K) across Qwen, Mistral, and Llama models (up to 25 points under aggressive eviction), markedly more stable Needle-in-a-Haystack retrieval, and superior LongBench scores and compression curves compared to existing eviction policies.",
-          "authors": [
-            "Xintong Yang",
-            "Hao Gu",
-            "Binxing Xu",
-            "Lujun Li",
-            "Bei Liu",
-            "Jiacheng Liu",
-            "Qiyuan Zhu",
-            "Sirui Han",
-            "Yike Guo"
-          ],
-          "primary_category": "cs.CL",
-          "categories": [
-            "cs.CL",
+            "cs.LG",
             "cs.AI"
           ],
-          "published": "2026-05-25T06:29:43+00:00",
-          "link": "https://arxiv.org/pdf/2605.25475v1",
+          "published": "2026-06-02T21:37:56+00:00",
+          "link": "https://arxiv.org/pdf/2606.04238v1",
           "tags": [
             "keyword:inf-accel",
             "query:inf-accel"
           ],
           "llm_score": 8.0,
-          "llm_evidence_en": "learned KV importance prediction for eviction and latent memory to prevent forgetting",
-          "llm_evidence_cn": "学习KV重要度预测以逐出，潜记忆防止遗忘",
-          "llm_evidence": "学习KV重要度预测以逐出，潜记忆防止遗忘",
-          "canonical_evidence": "学习KV重要度预测以逐出，潜记忆防止遗忘",
-          "llm_tldr_en": "IndexMem uses a learned indexer to predict KV importance for eviction and a latent memory to retain long-range information.",
-          "llm_tldr_cn": "长上下文推理中KV缓存过大，现有逐出策略启发式且易遗忘。本文提出IndexMem，可学习索引器预测KV重要性以精准保留关键token，并引入潜记忆单元补偿逐出信息的丢失，在多种长上下文任务上优于启发式方法。",
-          "llm_tldr": "长上下文推理中KV缓存过大，现有逐出策略启发式且易遗忘。本文提出IndexMem，可学习索引器预测KV重要性以精准保留关键token，并引入潜记忆单元补偿逐出信息的丢失，在多种长上下文任务上优于启发式方法。",
+          "llm_evidence_en": "aggressive 2-bit quantization to accelerate LLM inference by reducing memory and bandwidth",
+          "llm_evidence_cn": "通过激进的2-bit量化减少内存和带宽，加速大语言模型推理",
+          "llm_evidence": "通过激进的2-bit量化减少内存和带宽，加速大语言模型推理",
+          "canonical_evidence": "通过激进的2-bit量化减少内存和带宽，加速大语言模型推理",
+          "llm_tldr_en": "Recover-LoRA extends to ultra-low-bit quantization, selectively quantizing MLP layers to 2-bit while recovering accuracy via knowledge distillation, enabling substantial inference speed and memory gains for LLMs.",
+          "llm_tldr_cn": "本文针对大语言模型推理中的内存和带宽瓶颈，提出将Recover-LoRA方法扩展到2-bit超低位量化场景。采用选择性混合精度策略，仅将MLP的gate和up投影层量化至2-bit，其他层保持更高精度，并通过基于合成数据的知识蒸馏恢复精度。在保持模型可用性的前提下，显著降低推理时的内存占用和带宽需求，从而加速部署，尤其适用于边缘设备。",
+          "llm_tldr": "本文针对大语言模型推理中的内存和带宽瓶颈，提出将Recover-LoRA方法扩展到2-bit超低位量化场景。采用选择性混合精度策略，仅将MLP的gate和up投影层量化至2-bit，其他层保持更高精度，并通过基于合成数据的知识蒸馏恢复精度。在保持模型可用性的前提下，显著降低推理时的内存占用和带宽需求，从而加速部署，尤其适用于边缘设备。",
           "llm_tags": [
             "query:inf-accel"
           ],
           "matched_query_tag": "query:inf-accel",
-          "matched_query_text": "KV cache compression techniques for reducing memory in large language model inference",
-          "matched_requirement_id": "req-5",
+          "matched_query_text": "large language model inference acceleration",
+          "matched_requirement_id": "req-2",
           "selection_source": "carryover_cache",
-          "paper_id": "2605.25475v1",
+          "paper_id": "2606.04238v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.01556v1",
+          "source": "arxiv",
+          "title": "TwinQuant: Learnable Subspace Decomposition for 4-Bit LLM Quantization",
+          "abstract": "4-bit quantization reduces the memory footprint and latency of large language model inference, but its aggressive precision reduction can severely degrade accuracy. Prior methods address this by decomposing each weight matrix into two components (e.g., via singular value decomposition) and quantizing them separately, assigning the bulk of values to a low-precision residual component while handling outliers with a high-precision low-rank component. However, such decompositions are designed to minimize the real-valued energy of the residual, rather than the post-quantization error of the residual and low-rank components. We propose TwinQuant, a 4-bit quantization framework that learns quantization-friendly decomposed subspaces and jointly reshapes both the low-rank and residual components. TwinQuant learns component-specific transformations via a joint optimization over the Stiefel and general linear manifolds, flattening their distributions and reducing dynamic-range imbalance. To enable efficient end-to-end execution, we further design a fused dual-component kernel that pipelines the two-stage low-rank computation on-chip and merges both components with a single epilogue, avoiding intermediate global-memory traffic. Across LLaMA3 and Qwen3 models, TwinQuant preserves near-FP16 accuracy and delivers up to $1.8\\times$ end-to-end speedup over an FP16 baseline.",
+          "authors": [
+            "Haodong Wang",
+            "Junjie Liu",
+            "Zicong Hong",
+            "Qianli Liu",
+            "Jian Lin",
+            "Song Guo",
+            "Xu Chen"
+          ],
+          "primary_category": "cs.DC",
+          "categories": [
+            "cs.DC"
+          ],
+          "published": "2026-06-01T02:02:12+00:00",
+          "link": "https://arxiv.org/pdf/2606.01556v1",
+          "tags": [
+            "keyword:inf-accel",
+            "query:inf-accel"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "4-bit quantization for LLM inference to reduce memory and latency",
+          "llm_evidence_cn": "LLM推理的4比特量化以减少内存和延迟",
+          "llm_evidence": "LLM推理的4比特量化以减少内存和延迟",
+          "canonical_evidence": "LLM推理的4比特量化以减少内存和延迟",
+          "llm_tldr_en": "TwinQuant learns quantization-friendly decomposed subspaces for 4-bit LLM quantization, achieving better accuracy-efficiency trade-off than prior SVD-based methods.",
+          "llm_tldr_cn": "现有4比特量化方法通过SVD分解权重矩阵为低秩和残差分量，但分解目标不是最小化量化后误差。TwinQuant通过学习可量化的子空间分解，并联合优化残差和低秩分量的后量化误差，在保持4比特压缩率的同时显著提升了模型精度。实验表明，TwinQuant在多种LLM上优于现有4比特量化方法，实现了更好的精度-效率平衡。",
+          "llm_tldr": "现有4比特量化方法通过SVD分解权重矩阵为低秩和残差分量，但分解目标不是最小化量化后误差。TwinQuant通过学习可量化的子空间分解，并联合优化残差和低秩分量的后量化误差，在保持4比特压缩率的同时显著提升了模型精度。实验表明，TwinQuant在多种LLM上优于现有4比特量化方法，实现了更好的精度-效率平衡。",
+          "llm_tags": [
+            "query:inf-accel"
+          ],
+          "matched_query_tag": "query:inf-accel",
+          "matched_query_text": "large language model inference acceleration",
+          "matched_requirement_id": "req-2",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.01556v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.09514v1",
+          "source": "arxiv",
+          "title": "BUDDY: BUdget-Driven DYnamic Depth Routing for Adaptive Large Language Model Inference",
+          "abstract": "Large language models (LLMs) incur high inference cost due to their depth and parameter scale. Depth pruning can reduce latency by skipping redundant Transformer blocks, but existing methods (i) provide limited control under user-specific compute budgets and (ii) typically fix the routing path, failing to adapt as the context grows during decoding. We propose Buddy, a budget-driven dynamic depth routing framework. Buddy uses a lightweight Decision Module to score intermediate layers conditioned on the input and deterministically executes the top-k layers to satisfy a given budget. To support decode-time adaptation, Buddy reuses the first-layer KV cache as a low-overhead global context source and pools it together with the newest token representation before each routing decision. When no explicit budget is provided, an optional Budget Predictor estimates an input-dependent compute level to balance quality and efficiency. Experiments on Llama-family and Qwen models show that Buddy is competitive with strong static pruning baselines and often improves the accuracy-compute trade-off, while uniquely supporting strict budget control, decode-time rerouting, and multiple budgets within a single trained model.",
+          "authors": [
+            "Yuhua Zhou",
+            "Shaoqi Yu",
+            "Shichao Weng",
+            "Changhai Zhou",
+            "Mingze Yin",
+            "Fei Yang",
+            "Aimin Pan"
+          ],
+          "primary_category": "cs.LG",
+          "categories": [
+            "cs.LG"
+          ],
+          "published": "2026-06-08T14:06:35+00:00",
+          "link": "https://arxiv.org/pdf/2606.09514v1",
+          "tags": [
+            "keyword:inf-accel",
+            "query:inf-accel"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "dynamic depth routing to skip blocks during LLM decoding",
+          "llm_evidence_cn": "动态深度路由在解码阶段跳过冗余Transformer块以降低延迟",
+          "llm_evidence": "动态深度路由在解码阶段跳过冗余Transformer块以降低延迟",
+          "canonical_evidence": "动态深度路由在解码阶段跳过冗余Transformer块以降低延迟",
+          "llm_tldr_en": "BUDDY proposes budget-driven dynamic depth routing for LLM inference, using a lightweight decision module to select top-k layers per input and adapting routing during decoding via KV cache reuse.",
+          "llm_tldr_cn": "该论文针对LLM推理延迟高的问题，提出BUDDY框架，通过轻量决策模块对输入动态评分并执行top-k层，实现预算驱动的深度剪枝。解码时，复用首层KV缓存作为全局上下文源以适配增长中的context。实验表明，BUDDY在满足计算预算的同时有效降低推理延迟，为解码阶段优化提供新思路。",
+          "llm_tldr": "该论文针对LLM推理延迟高的问题，提出BUDDY框架，通过轻量决策模块对输入动态评分并执行top-k层，实现预算驱动的深度剪枝。解码时，复用首层KV缓存作为全局上下文源以适配增长中的context。实验表明，BUDDY在满足计算预算的同时有效降低推理延迟，为解码阶段优化提供新思路。",
+          "llm_tags": [
+            "query:inf-accel"
+          ],
+          "matched_query_tag": "query:inf-accel",
+          "matched_query_text": "optimization of decoding stage in large language model inference",
+          "matched_requirement_id": "req-6",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.09514v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.05511v1",
+          "source": "arxiv",
+          "title": "RH+: Row-Hit-Optimized Scheduling for PIM-based LLM Inference",
+          "abstract": "Large language model inference on processing-in-memory (PIM) architectures promises to break the memory wall by performing multiply-accumulate (MAC) operations directly within HBM3 DRAM banks. Prior work identifies the power constraint timing parameter nCCDAB as the primary performance bottleneck and optimizes scheduling accordingly. We demonstrate that for GEMV operations that dominate autoregressive decoding, the DRAM row cycle time (nRC) is 10 to 11 times larger than nCCDAB. Consequently, nCCDAB is entirely masked, rendering prior nCCDAB-focused optimizations ineffective for these workloads. The root cause is inherited host-centric address interleaving, which forces every all-bank MAC command into a different DRAM row. We propose RH+ scheduling, a simple stride change that keeps 32 consecutive MAC operations within the same row. Cycle-accurate simulation across four LLM workloads shows that RH+ delivers 8-12x speedup, over 74% energy reduction, and up to 52x EDP improvement.",
+          "authors": [
+            "Yongchan Jung",
+            "Shafayat Mowla Anik",
+            "Byeong Kil Lee",
+            "Jeeho Ryoo"
+          ],
+          "primary_category": "cs.ET",
+          "categories": [
+            "cs.ET"
+          ],
+          "published": "2026-06-03T23:33:30+00:00",
+          "link": "https://arxiv.org/pdf/2606.05511v1",
+          "tags": [
+            "keyword:inf-accel",
+            "query:inf-accel"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "PIM-based scheduling optimized for autoregressive decoding",
+          "llm_evidence_cn": "针对自回归解码的PIM调度优化",
+          "llm_evidence": "针对自回归解码的PIM调度优化",
+          "canonical_evidence": "针对自回归解码的PIM调度优化",
+          "llm_tldr_en": "RH+ scheduling exposes DRAM row-cycle bottleneck in PIM-based LLM decoding and proposes row-hit-optimized scheduling to significantly improve throughput.",
+          "llm_tldr_cn": "该论文针对PIM架构上LLM推理的解码阶段，发现DRAM行周期（nRC）是主要瓶颈，而以前关注的nCCDAB被掩盖。提出RH+调度算法，通过简单修改地址交错和行命中优化，显著提升GEMV操作吞吐量。实验证明，该方法适用于多种LLM，为PIM加速LLM解码提供了实际可行的硬件感知优化。",
+          "llm_tldr": "该论文针对PIM架构上LLM推理的解码阶段，发现DRAM行周期（nRC）是主要瓶颈，而以前关注的nCCDAB被掩盖。提出RH+调度算法，通过简单修改地址交错和行命中优化，显著提升GEMV操作吞吐量。实验证明，该方法适用于多种LLM，为PIM加速LLM解码提供了实际可行的硬件感知优化。",
+          "llm_tags": [
+            "query:inf-accel"
+          ],
+          "matched_query_tag": "query:inf-accel",
+          "matched_query_text": "optimization of decoding stage in large language model inference",
+          "matched_requirement_id": "req-6",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.05511v1",
           "carry_days": 1
         }
       ]

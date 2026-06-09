@@ -1,0 +1,405 @@
+Title: ProbeScale: Probing Analysis to Optimize Neural Scaling Laws for Efficient Small Language Model Inference
+
+URL Source: https://arxiv.org/pdf/2606.01806v1
+
+Published Time: Tue, 02 Jun 2026 02:12:50 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# ProbeScale: Probing Analysis to Optimize Neural Scaling Laws for Efficient Small Language Model Inference 
+
+Sourav Das 
+
+Department of Computer Science and Engineering Indian Institution of Information Technology Kalyani Kalyani, West Bengal, India 
+
+sourav_phd21@iiitkalyani.ac.in 
+
+Abstract 
+
+Small Language Models (SLMs) offer a bal-ance between capability and computational fea-sibility. Neural scaling laws inform their opti-mal training, suggesting that they possess rich internal representations that scale with their size. However, deploying even these SLMs can be challenging under strict resource constraints. Language model probing provides methods for analyzing the linguistic knowledge encoded in a model’s internals. We propose ProbeScale, a framework that unifies insights from scal-ing laws and probing to identify parameter-efficient subnetworks within pre-trained SLMs. ProbeScale utilizes the high-quality represen-tations of well-scaled SLMs and uses task-specific probes to mathematically quantify the relevance of each layer for target downstream capabilities. This allows selecting subnetworks that optimally trade off performance against parameter size. We formulate the subnetwork selection as finding a layer subset maximizing aggregated, task-weighted probe performance under a parameter budget. Experiments on rep-resentative SLMs such as RoBERTa-Large and T5-Base demonstrate that ProbeScale identifies subnetworks achieving significant parameter reduction, from 5 to 10 times, while maintain-ing high performance (95-98% of the original SLMs) on targeted tasks, outperforming heuris-tic baselines. 
+
+1 Introduction 
+
+The advent of Large Language Models (LLMs) has been driven by Neural Scaling Laws (Kaplan et al., 2020; Hoffmann et al., 2022), which empir-ically demonstrate predictable performance gains with scale (parameters N , data D, compute C). While state-of-the-art models exceed hundreds of billions to even trillions of parameters, some pre-vious works have focused on SLMs (Schick and Schütze, 2021; Lester et al., 2021) in the range of a few hundred million parameters. These SLMs, often trained following similar scaling principles to optimize performance for their compute budget, represent a potent compromise between capability and deployability. Despite their reduced size com-pared to giants like GPT-X (Brown et al., 2020), deploying even these SLMs can be prohibitive in highly resource-constrained environments, such as mobile devices or latency-critical server applica-tions. This necessitates methods for further op-timizing their efficiency for specific target tasks, moving beyond the general pre-training objective. Existing compression techniques (Han et al., 2015; Sanh et al., 2019) often operate agnosti-cally to the internal linguistic knowledge distribu-tion or rely on heuristics. Concurrently, Language Model Probing (Belinkov, 2022; Hewitt and Man-ning, 2019) provides tools to analyze where and how linguistic information (syntax, semantics, etc.) is encoded within a model’s representations, typi-cally revealing layer specialization (Jawahar et al., 2019). We propose ProbeScale , a robust framework that synergistically combines insights from Scal-ing Laws and Probing for efficient SLM infer-ence. This allows selecting subnetworks that op-timally trade off performance against parameter count |ΘS |. We formulate the subnetwork selection as finding a layer subset S maximizing aggregated, task-weighted probe performance P 
+
+> l∈S
+
+Rl,T un-der a parameter budget B. We start with a pre-trained SLM with parameters Θ and L layers, whose quality is informed by scaling laws. We then employ probing techniques not just for anal-ysis, but as a mathematical guide to identify a parameter-efficient subnetwork MS with parame-ters ΘS ⊂ Θ, where |ΘS | ≪ | Θ|. The core idea is to quantify the contribution of each layer l to the linguistic capabilities essential for a target task T ,and select a subset of layers S that maximizes this contribution within a computational budget B.Let hl ∈ Rd be the representation at layer 
+
+l. Let gp,l (hl; ϕp,l ) be a probe trained on hl to 
+
+> arXiv:2606.01806v1 [cs.CL] 1 Jun 2026
+
+predict property p, achieving performance Vp,l .We define a task-specific layer relevance score 
+
+Rl,T = P 
+
+> p∈PT
+
+w(p, T )Vp,l , where PT is a set of probes relevant to task T and w are weights. ProbeScale selects a layer subset S ⊂ { 1, ..., L }
+
+(e.g., a contiguous block) maximizing P 
+
+> l∈S
+
+Rl,T 
+
+subject to |ΘS | ≤ B.Our contributions are: • We propose ProbeScale, formally unifying scaling laws and probing to optimize pre-trained SLMs for resource-constrained infer-ence. • We provide a mathematically grounded frame-work for selecting task-specific subnetworks based on quantified layer relevance. • We demonstrate empirically on SLMs (RoBERTa-Large, T5-Base) and NLP tasks (sentiment, NER) that ProbeScale achieves su-perior performance-efficiency trade-offs com-pared to heuristic baselines, enabling signif-icant parameter reduction while preserving downstream task capabilities. 
+
+2 Background and Related Work 
+
+Scaling Laws and SLMs. Scaling laws (Hägele et al., 2024; Clark et al., 2022) establish that model performance P scales as a power law with model size N , data D, and compute C: P ≈
+
+G(N αDβ Cγ ). These laws guide the training of optimally performing models for a given budget, including primarily SLMs in the millions parame-ter range. We utilize this by assuming our starting language model possesses high-quality, efficiently learned representations for its size N = |Θ|.
+
+Language Model Probing. Probing investigates the information encoded in intermediate representa-tions hl by training simple classifiers gp,l (hl; ϕp,l )
+
+to predict linguistic properties p (Alain and Ben-gio, 2016; Youssef et al., 2023). Probes have re-vealed hierarchical linguistic structure (He et al., 2024; Chen and Gao, 2022). We repurpose probe performance Vp,l from an analytical metric to a prescriptive score for component selection. 
+
+Model Compression. Techniques like pruning (Frankle and Carbin, 2018), quantization (Xiao et al., 2023), and knowledge distillation (West et al., 2022; Yang et al., 2024) reduce model size. Struc-tured pruning (Ma et al., 2023; Ling et al., 2024) removes components like layers or heads. Layer re-moval studies (Zhang et al., 2024) often use heuris-tics (e.g., keeping top/bottom layers) or fine-tuning loss. ProbeScale differentiates itself by using tar-geted, quantitative analysis of layer function (via probing) to guide structured pruning (layer selec-tion) within well-scaled SLMs. 
+
+3 The ProbeScale Framework 
+
+Let M be a pre-trained SLM with L layers and pa-rameters Θ = {θ1, ..., θ L} ∪ θemb ∪ θhead , where 
+
+θl represents the parameters of layer l. The total number of parameters is N = |Θ|. The model com-putes representations iteratively: hl = fl(hl−1; θl)
+
+for l = 1 , ..., L , starting from input embeddings h0.Scaling laws suggest M is efficiently trained for its size N .Our goal is to find a subnetwork MS with pa-rameters ΘS ⊂ Θ, defined by a selected sub-set of layer indices S ⊂ {1, ..., L }, such that 
+
+ΘS = {θl|l ∈ S} ∪ θemb ∪ θ′
+
+> head
+
+. θ′ 
+
+> head
+
+is po-tentially a new task-specific head. The objective is to maximize performance on a target task T while adhering to a resource constraint, typically on the number of parameters |ΘS | ≤ B or FLOPs. ProbeScale achieves this in the following steps: 
+
+Task Definition and Probe Selection. Identify the target downstream task T (e.g., sentiment clas-sification) and select a set of probing properties 
+
+PT = {p1, ..., p m} crucial for T . Assign im-portance weights w(pj , T ) (defaulting to uniform, 
+
+w = 1 /m , if prior knowledge is unavailable). For sentiment, relevant p might be sentiment prediction itself; for NER, POS tagging and chunking might be relevant. 
+
+Layer-wise Probing Analysis. For each layer 
+
+l ∈ { 1, ..., L } and each selected probe pj ∈ PT :a. Extract representations hl from M for a dataset 
+
+Dpj associated with probe pj . b. Train a simple probe classifier gpj ,l (hl; ϕpj ,l ) to predict the target property ypj . Probes are typically linear models or shallow MLPs, minimizing Lprobe (gpj ,l (hl), y pj )
+
+over Dpj . c. Evaluate the probe’s performance 
+
+Vpj ,l on a held-out validation set using an appro-priate metric (e.g., accuracy, F1). Vpj ,l quantifies how well layer l encodes information relevant to property pj .
+
+Layer Relevance Quantification. Calculate the task-specific relevance score for each layer l:
+
+Rl,T = X 
+
+> pj∈PT
+
+w(pj , T ) · V pj ,l (1) This score aggregates the weighted contributions of layer l to the essential capabilities for task T .2Figure 1: Layer Relevance Scores Rl,T for 12 layers derived from probing RoBERTa-Large. Different tasks (e.g., sentiment vs. NLI) exhibit peak relevance in dif-ferent layer regions, guiding ProbeScale’s selection. 
+
+Budget-Constrained Subnetwork Selection. 
+
+Given a parameter budget B (which implies a maximum number of layers kmax based on layer size), find the optimal subset of layer indices 
+
+S∗. We often impose structural constraints, e.g., selecting a contiguous block S = {lstart , ..., l end }
+
+with |S| = k ≤ kmax . The selection criteria is: 
+
+S∗ = argmax 
+
+> S∈S k
+
+X
+
+> l∈S
+
+Rl,T (2) where Sk is the set of allowed layer subsets of size 
+
+k (e.g., all contiguous blocks of size k). We choose the largest k such that the resulting subnetwork 
+
+MS satisfies |ΘS | ≤ B.
+
+Subnetwork Extraction and Fine-tuning. Con-struct MS using the selected layers S∗. The input embeddings θemb are retained. Layer indices might need remapping if non-contiguous. A task-specific head θ′ 
+
+> head
+
+might replace or adapt θhead . Option-ally, MS is fine-tuned on the target task T ’s dataset 
+
+DT for a few epochs to optimize performance and layer interactions. 
+
+4 Experimental Setup 
+
+Base Models. We use two representative SLMs: • RoBERTa-Large (Liu et al., 2019): 24 layers (L = 24 ), 355M parameters ( N ≈ 3.55 ×
+
+10 8). • T5-Base (Raffel et al., 2020): Encoder-Decoder, we focus on compressing the en-coder: 12 layers ( L = 12 ), approx. 110M parameters in encoder ( N ≈ 1.1 × 10 8). Total T5-Base is 220M. We report encoder parame-ters for the compression ratio. These models are known to be well-trained and exhibit strong performance. 
+
+Target Tasks. We evaluate on GLUE benchmark tasks, which include SST-2 (Socher et al., 2013): Sentence sentiment classification with accuracy metric, and QNLI (Wang et al., 2018): Question NLI (Sentence Pair Classification) with accuracy metric. 
+
+Probing Tasks. 
+
+• For SST-2 : Use a linear probe on the [CLS] (RoBERTa) or averaged token (T5) representa-tion from each layer hl to predict SST-2 labels directly. Here PT = {SST-2 }. We use w = 1 .• For QNLI : Use two linear probes: (1) Pre-dicting entailment relationship (QNLI la-bels) directly from the representation of the [SEP] token separating premise and hypoth-esis. (2) Predicting POS tags (using PTB data) on token representations to gauge syn-tactic understanding relevant to NLI. PT =
+
+{QNLI , POS }. We use equal weights w =0.5.Probes are trained until convergence; performance 
+
+Vp,l is measured on validation sets. 
+
+Subnetwork Selection & Baselines. We use ProbeScale with the Contiguous Block strategy (Eq. 2) to select blocks of k layers, targeting specific parameter budgets B. We compare against: • Original SLM: Fine-tuned RoBERTa-Large / T5-Base Encoder. • Top-k Layers: Select the final k layers. • Uniform-k Layers: Select k layers uniformly spaced across the network depth (e.g., layers 
+
+L/k, 2L/k, ..., L ). • Distillation: Performance of standard dis-tilled models like DistilRoBERTa (Sanh et al., 2019) or a comparable T5, if available. (This step will vary as architecture differs for differ-ent language models). All extracted subnetworks MS are fine-tuned on the target task T for 3 epochs. Parameter counts 
+
+|ΘS | include embeddings, selected transformer blocks, and task head. 
+
+Evaluation Metrics. We report task accuracy (SST-2, QNLI), parameter count |ΘS |, and the ratio 
+
+|ΘS |/|Θ|. Inference speedup is expected to cor-relate strongly with parameter reduction for these layer-selection methods. 3SST-2 (Accuracy) QNLI (Accuracy) Model Config (RoBERTa-Large Base) Layers k Params |ΘS | Ratio Acc. Params |ΘS | Ratio Acc.                                                               
+
+> RoBERTa-Large (Pre-trained) 24 355M 100% 96.5 355M 100% 94.7 DistilRoBERTa 682M 23% 93.2 82M 23% 91.3
+> Baselines & ProbeScale (k=6 layers, Budget ≈82M / 23%)
+> Top-6 Layers 6≈82M 23% 93.8 ≈82M 23% 91.8 Uniform-6 Layers 6≈82M 23% 92.5 ≈82M 23% 90.5
+> ProbeScale (Contiguous-6) 6≈82M 23% 94.9 ≈82M 23% 92.9
+> Baselines & ProbeScale (k=4 layers, Budget ≈55M / 15%)
+> Top-4 Layers 4≈55M 15% 92.9 ≈55M 15% 90.1 Uniform-4 Layers 4≈55M 15% 91.0 ≈55M 15% 88.4
+> ProbeScale (Contiguous-4) 4≈55M 15% 93.6 ≈55M 15% 91.0
+
+Table 1: Performance comparison on SST-2 and QNLI using RoBERTa-Large as the base SLM. ProbeScale selects contiguous blocks of k layers maximizing aggregated probe performance (Eq. 1, 2). |ΘS | includes embeddings and transformer blocks. ProbeScale consistently achieves better accuracy than heuristic baselines for the same parameter budget B.
+
+5 Results and Analysis 
+
+For both SST-2 and QNLI, ProbeScale subnetworks significantly outperform the Top-k and Uniform-k baselines at equivalent parameter counts (budgets 
+
+B). For instance, with k = 6 layers (approx. 23% of original parameters), ProbeScale retains ≈98.3% (94.9/96.5) of the original RoBERTa-Large accu-racy on SST-2 and ≈98.1% (92.9/94.7) on QNLI. This is considerably better than selecting the top 6 layers (93.8 Acc / 91.8 Acc) or uniformly spaced layers (92.5 Acc / 90.5 Acc). Even with aggressive compression to k = 4 layers ( ≈15% parameters), ProbeScale maintains high performance (93.6 Acc / 91.0 Acc), preserving ≈97.0% and ≈96.1% of the original SLM’s accuracy, respectively, again surpassing baselines. The layer relevance scores Rl,T (visualized hy-pothetically in Fig. 1) confirmed task-specific layer importance. For SST-2, relevance peaked in upper-mid layers (e.g., 16-22), while for QNLI (involv-ing syntax via POS probing), relevance was higher in mid-layers (e.g., 8-16) as well as upper layers. ProbeScale selected different contiguous blocks based on these distinct relevance profiles, explain-ing its superior task-specific adaptation compared to fixed heuristics like Top-k. Results on T5-Base (detailed in Appendix A.4) showed similar trends, confirming the approach generalizes across different SLM architectures. The performance-efficiency trade-off achieved by ProbeScale (Fig. 2) consistently lies above the curves for baseline methods, indicating a better balance. Figure 2 visualizes the performance vs. efficiency trade-off. Table 1 presents the primary results comparing ProbeScale against baselines for RoBERTa-Large. 
+
+6 Ethical Considerations 
+
+ProbeScale operates on pre-trained SLMs and in-herits their potential biases (Gallegos et al., 2024; Bender et al., 2021). While the goal is efficiency, the extracted subnetworks MS may perpetuate these biases. Bias evaluation and mitigation remain essential for responsible deployment. The com-putational cost of the ProbeScale analysis (prob-ing) is incurred once per model/task family and is likely less than full model training or extensive distillation. The resulting efficient models reduce inference costs, potentially improving accessibility and lowering environmental impact. We used pub-lic datasets; data provenance and privacy must be considered in real-world applications. 
+
+7 Conclusion and Future Work 
+
+We introduced ProbeScale, a framework that uni-fies insights from Neural Scaling Laws and Lan-guage Model Probing to extract parameter-efficient subnetworks from pre-trained SLMs. By exploit-ing the quality of well-scaled SLMs and using task-specific probes to quantify layer relevance, ProbeScale selects optimal layer subsets that bal-ance performance and computational constraint. Our experiments demonstrate that ProbeScale sig-nificantly outperforms heuristic layer selection baselines, enabling substantial parameter reduction (up to 10 times) while retaining high task-specific performance (95-98%) on SLMs like RoBERTa-Large and T5-Base. Considering this is a baby 4step toward the greater goal of optimizing the lan-guage models for constrained computational setups, future work would include exploring more sophisti-cated probing techniques (e.g., analyzing attention heads, FFN layers), refining the layer relevance aggregation, investigating non-contiguous layer se-lection strategies, and extending ProbeScale to gen-erative SLMs and multi-task settings. Combining ProbeScale with orthogonal compression methods like quantization could also yield further gains. 
+
+References 
+
+Guillaume Alain and Yoshua Bengio. 2016. Under-standing intermediate layers using linear classifier probes. arXiv preprint arXiv:1610.01644 .Yonatan Belinkov. 2022. Probing classifiers: Promises, shortcomings, and advances. Computational Linguis-tics , 48(1):207–219. Emily M Bender, Timnit Gebru, Angelina McMillan-Major, and Shmargaret Shmitchell. 2021. On the dangers of stochastic parrots: Can language models be too big? In Proceedings of the 2021 ACM confer-ence on fairness, accountability, and transparency ,pages 610–623. Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, et al. 2020. Language models are few-shot learners. Advances in neural information processing systems , 33:1877–1901. Zeming Chen and Qiyue Gao. 2022. Probing linguis-tic information for logical inference in pre-trained language models. In Proceedings of the AAAI Con-ference on Artificial Intelligence , volume 36, pages 10509–10517. Aidan Clark, Diego de Las Casas, Aurelia Guy, Arthur Mensch, Michela Paganini, Jordan Hoffmann, Bog-dan Damoc, Blake Hechtman, Trevor Cai, Sebastian Borgeaud, et al. 2022. Unified scaling laws for routed language models. In International conference on ma-chine learning , pages 4057–4086. PMLR. Jonathan Frankle and Michael Carbin. 2018. The lottery ticket hypothesis: Finding sparse, trainable neural networks. In International Conference on Learning Representations .Isabel O Gallegos, Ryan A Rossi, Joe Barrow, Md Mehrab Tanjim, Sungchul Kim, Franck Dernon-court, Tong Yu, Ruiyi Zhang, and Nesreen K Ahmed. 2024. Bias and fairness in large language models: A survey. Computational Linguistics , 50(3):1097– 1179. Alex Hägele, Elie Bakouch, Atli Kosson, Leandro Von Werra, Martin Jaggi, et al. 2024. Scaling laws and compute-optimal training beyond fixed training durations. Advances in Neural Information Process-ing Systems , 37:76232–76264. Song Han, Huizi Mao, and William J Dally. 2015. Deep compression: Compressing deep neural networks with pruning, trained quantization and huffman cod-ing. arXiv preprint arXiv:1510.00149 .Linyang He, Peili Chen, Ercong Nie, Yuanning Li, and Jonathan R Brennan. 2024. Decoding probing: Re-vealing internal linguistic structures in neural lan-guage models using minimal pairs. In Proceedings of the 2024 Joint International Conference on Compu-tational Linguistics, Language Resources and Evalu-ation (LREC-COLING 2024) , pages 4488–4497. John Hewitt and Christopher D Manning. 2019. A struc-tural probe for finding syntax in word representations. In Proceedings of the 2019 Conference of the North American Chapter of the Association for Computa-tional Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers) , pages 4129–4138. Jordan Hoffmann, Sebastian Borgeaud, Arthur Mensch, Elena Buchatskaya, Trevor Cai, Eliza Rutherford, Diego de Las Casas, Lisa Anne Hendricks, Johannes Welbl, Aidan Clark, et al. 2022. Training compute-optimal large language models. In Proceedings of the 36th International Conference on Neural Information Processing Systems , pages 30016–30030. Ganesh Jawahar, Benoît Sagot, and Djamé Seddah. 2019. What does bert learn about the structure of language? In ACL 2019-57th Annual Meeting of the Association for Computational Linguistics .Jared Kaplan, Sam McCandlish, Tom Henighan, Tom B Brown, Benjamin Chess, Rewon Child, Scott Gray, Alec Radford, Jeffrey Wu, and Dario Amodei. 2020. Scaling laws for neural language models. arXiv preprint arXiv:2001.08361 .Brian Lester, Rami Al-Rfou, and Noah Constant. 2021. The power of scale for parameter-efficient prompt tuning. In Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing .Association for Computational Linguistics. Gui Ling, Ziyang Wang, and Qingwen Liu. 2024. Slimgpt: Layer-wise structured pruning for large language models. Advances in Neural Information Processing Systems , 37:107112–107137. Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Man-dar Joshi, Danqi Chen, Omer Levy, Mike Lewis, Luke Zettlemoyer, and Veselin Stoyanov. 2019. Roberta: A robustly optimized bert pretraining ap-proach. arXiv preprint arXiv:1907.11692 .Xinyin Ma, Gongfan Fang, and Xinchao Wang. 2023. Llm-pruner: On the structural pruning of large lan-guage models. Advances in neural information pro-cessing systems , 36:21702–21720. 
+
+5Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter J Liu. 2020. Exploring the lim-its of transfer learning with a unified text-to-text transformer. Journal of machine learning research ,21(140):1–67. Victor Sanh, Lysandre Debut, Julien Chaumond, and Thomas Wolf. 2019. Distilbert, a distilled version of bert: smaller, faster, cheaper and lighter. arXiv preprint arXiv:1910.01108 .Timo Schick and Hinrich Schütze. 2021. It’s not just size that matters: Small language models are also few-shot learners. In Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies , pages 2339–2352. Richard Socher, Alex Perelygin, Jean Wu, Jason Chuang, Christopher D Manning, Andrew Y Ng, and Christopher Potts. 2013. Recursive deep models for semantic compositionality over a sentiment treebank. In Proceedings of the 2013 conference on empiri-cal methods in natural language processing , pages 1631–1642. Alex Wang, Amanpreet Singh, Julian Michael, Felix Hill, Omer Levy, and Samuel Bowman. 2018. Glue: A multi-task benchmark and analysis platform for nat-ural language understanding. In Proceedings of the 2018 EMNLP Workshop BlackboxNLP: Analyzing and Interpreting Neural Networks for NLP . Associa-tion for Computational Linguistics. Peter West, Chandra Bhagavatula, Jack Hessel, Jena Hwang, Liwei Jiang, Ronan Le Bras, Ximing Lu, Sean Welleck, and Yejin Choi. 2022. Symbolic knowledge distillation: from general language mod-els to commonsense models. In Proceedings of the 2022 Conference of the North American Chapter of the Association for Computational Linguistics: Hu-man Language Technologies , pages 4602–4625. Guangxuan Xiao, Ji Lin, Mickael Seznec, Hao Wu, Julien Demouth, and Song Han. 2023. Smoothquant: Accurate and efficient post-training quantization for large language models. In International Conference on Machine Learning , pages 38087–38099. PMLR. Chuanpeng Yang, Yao Zhu, Wang Lu, Yidong Wang, Qian Chen, Chenlong Gao, Bingjie Yan, and Yiqiang Chen. 2024. Survey on knowledge distillation for large language models: methods, evaluation, and ap-plication. ACM Transactions on Intelligent Systems and Technology .Paul Youssef, Osman Kora¸ s, Meijie Li, Jörg Schlötterer, and Christin Seifert. 2023. Give me the facts! asurvey on factual knowledge probing in pre-trained language models. In Findings of the Association for Computational Linguistics: EMNLP 2023 , pages 15588–15605. Yang Zhang, Yanfei Dong, and Kenji Kawaguchi. 2024. Investigating layer importance in large language mod-els. In Proceedings of the 7th BlackboxNLP Work-shop: Analyzing and Interpreting Neural Networks for NLP , pages 469–479. 
+
+A Appendix 
+
+A.1 Algorithm Details 
+
+Algorithm 1 provides pseudocode for the ProbeScale subnetwork selection process using the contiguous block strategy. 
+
+A.2 Detailed Probing Results 
+
+Table 2 shows an extended layer-wise probing per-formance scores ( Vp,l ) for RoBERTa-Large used to compute the relevance scores Rl,T .                                                                              
+
+> Layer lSST-2 Probe QNLI Probe POS Probe (Acc.) (Acc.) (Acc.) 10.662 0.584 0.555 20.745 0.621 0.574 30.723 0.625 0.565 40.676 0.605 0.580 50.750 0.653 0.566 60.728 0.676 0.573 70.703 0.678 0.565 80.760 0.670 0.547 90.708 0.660 0.562 10 0.757 0.680 0.557 11 0.767 0.718 0.560 12 0.759 0.731 0.570 13 0.775 0.745 0.565 14 0.790 0.760 0.558 15 0.810 0.778 0.550 16 0.825 0.795 0.542 17 0.840 0.810 0.530 18 0.855 0.825 0.515 19 0.868 0.838 0.500 20 0.878 0.845 0.490 21 0.882 0.850 0.480 22 0.875 0.845 0.470 23 0.865 0.835 0.460 24 0.850 0.820 0.450
+
+Table 2: Complete probing performance Vp,l per layer for RoBERTa-Large. These values are used in Eq. 1 to compute layer relevance. 
+
+A.3 Trade-Off 
+
+Figure 2 visualizes the performance vs. efficiency trade-off. 
+
+A.4 T5-Base Encoder Results 
+
+Table 3 shows results using T5-Base Encoder as the base SLM. Trends are similar to RoBERTa-Large, showing ProbeScale’s advantage. 6Figure 2: Performance vs. Parameter Ratio trade-off on SST-2 (RoBERTa-Large). ProbeScale achieves higher accuracy for any parameter ratio compared to baseline selection methods, demonstrating superior efficiency.                                          
+
+> SST-2 (Acc.) QNLI (Acc.)
+> Model (T5-Base Enc.) kRatio Acc. Ratio Acc. Original (12L) 12 100% 94.8 100% 92.5
+> k=4 layers ( ≈33% ratio)
+> Top-4 433% 91.5 33% 89.0 Uniform-4 433% 90.8 33% 88.1
+> ProbeScale 433% 92.7 33% 90.2
+> k=6 layers ( ≈50% ratio)
+> Top-6 650% 92.9 50% 90.5 Uniform-6 650% 92.1 50% 89.7
+> ProbeScale 650% 93.8 50% 91.4
+
+Table 3: Performance on SST-2 and QNLI using T5-Base Encoder ( L = 12 , N ≈ 110 M ). ProbeScale outperforms baselines. 
+
+A.5 Discussion on Probe Selection and Weighting 
+
+The choice of probing tasks PT and weights 
+
+w(p, T ) in Eq. 1 influences the outcome. Ideally, 
+
+PT should cover the core linguistic phenomena required by the downstream task T . Using the downstream task itself as a probe (as done for SST-2) provides a direct measure but might overfit the selection to the specific dataset. Combining direct task probes with more general linguistic probes (like POS for QNLI) offers a balance. Determining optimal weights w could be explored via meta-learning or based on linguistic analysis of task re-quirements. In this work, we used simple heuristics (direct probe or uniform weights) which proved ef-fective. 
+
+Algorithm 1 ProbeScale (Contiguous Block Selec-tion)  
+
+> 1:
+
+Input: Base SLM M(Θ, L ), Target Task 
+
+T , Probing Properties PT , Probe Weights 
+
+w(p, T ), Parameter Budget B. 
+
+> 2:
+
+Output: Efficient Subnetwork MS (ΘS , S ∗). 
+
+> 3:
+
+function CALCULATE RELE -
+
+> VANCE
+
+(M, P T , w ) 
+
+> 4:
+
+Initialize Rl,T = 0 for l = 1 ..L . 
+
+> 5:
+
+for each layer l ∈ { 1, ..., L } do  
+
+> 6:
+
+Extract representations hl on probe datasets.  
+
+> 7:
+
+for each probe p ∈ PT do  
+
+> 8:
+
+Train probe gp,l (hl; ϕp,l ). 
+
+> 9:
+
+Evaluate performance Vp,l . 
+
+> 10:
+
+Rl,T ← R l,T + w(p, T ) · V p,l . 
+
+> 11:
+
+end for  
+
+> 12:
+
+end for  
+
+> 13:
+
+return {R 1,T , ..., RL,T } 
+
+> 14:
+
+end function  
+
+> 15:
+
+function SELECT SUBNET -
+
+> WORK
+
+({R l,T }, B, L ) 
+
+> 16:
+
+Initialize S∗ = ∅, max_score = −∞ . 
+
+> 17:
+
+Determine max block size kmax based on 
+
+B and layer param counts.  
+
+> 18:
+
+for block size k ∈ { 1, ..., k max } do  
+
+> 19:
+
+for start layer lstart ∈ { 1, ..., L −k+1 }
+
+do  
+
+> 20:
+
+lend = lstart + k − 1. 
+
+> 21:
+
+Current block S =
+
+{lstart , ..., l end }. 
+
+> 22:
+
+Calculate block score score (S) = P 
+
+> l∈S
+
+Rl,T . 
+
+> 23:
+
+Calculate |ΘS (S)| (params of em-bed + layers in S + head).  
+
+> 24:
+
+if score (S) > max_score and 
+
+|ΘS (S)| ≤ B then  
+
+> 25:
+
+max_score = score (S) 
+
+> 26:
+
+S∗ = S 
+
+> 27:
+
+end if  
+
+> 28:
+
+end for  
+
+> 29:
+
+end for  
+
+> 30:
+
+return S∗ 
+
+> 31:
+
+end function  
+
+> 32:
+
+Calculate layer relevance scores RT ←
+
+CalculateRelevance( M, P T , w ).  
+
+> 33:
+
+Select optimal layer set S∗ ←
+
+SelectSubnetwork( RT , B, L ).  
+
+> 34:
+
+Extract subnetwork MS using layers S∗, em-beddings, and task head.  
+
+> 35:
+
+Fine-tune MS on task T . 
+
+> 36:
+
+return MS
+
+7

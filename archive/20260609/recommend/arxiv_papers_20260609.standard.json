@@ -1,0 +1,848 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-09T22:03:14.766764+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 19,
+    "deep_cap": 6,
+    "deep_selected": 9,
+    "quick_candidates": 21,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2606.01563v1",
+      "source": "arxiv",
+      "title": "MomentKV: Closing the Directional Gap in KV Cache Eviction for Long-Context Inference",
+      "abstract": "Autoregressive decoding in Transformer-based language models relies on the KV cache, whose memory footprint grows linearly with sequence length and becomes the primary bottleneck for long-context inference. KV cache eviction addresses this by retaining a fixed-size subset of key-value pairs and discarding the rest. We identify that a primary source of output degradation is not the residual attention mass on evicted tokens, which existing methods already minimize, but a directional mismatch between the retained and evicted token sets. Specifically, the evicted tokens in practice are often near-orthogonal to the retained ones. Thus, even a small evicted mass could have an oversized impact on the resulting direction distribution and amplify into substantial output error. This reveals a fundamental limit in existing strategies. To address this, we propose MomentKV, which maintains compact, small-size moment statistics over the evicted token set, including a count, key mean, value mean, and value-key covariance. During eviction, the moment statistics is leveraged to identify tokens already well aligned with and captured by the accumulated summary, keeping the evicted set geometrically regular. During inference, they yield a closed-form first-order approximation of the evicted attention output, forming a mutually reinforcing loop between selective eviction and accurate correction. On LongBench and RULER with LLaMA-3.1-8B-Instruct and Qwen3-4B-Instruct, MomentKV outperforms all baselines at every cache budget, with the largest gains under aggressive compression.",
+      "authors": [
+        "Yu Li",
+        "Binxu Li",
+        "Tian Lan"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-06-01T02:08:40+00:00",
+      "link": "https://arxiv.org/pdf/2606.01563v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "KV cache eviction for long-context inference",
+      "llm_evidence_cn": "KV缓存驱逐用于长上下文推理",
+      "llm_evidence": "KV缓存驱逐用于长上下文推理",
+      "canonical_evidence": "KV缓存驱逐用于长上下文推理",
+      "llm_tldr_en": "MomentKV identifies and addresses the directional mismatch in evicted vs retained tokens, improving KV cache eviction for LLM long-context inference with minimal degradation.",
+      "llm_tldr_cn": "当前的KV缓存驱逐方法虽然最小化了被驱逐token的剩余注意力质量，但忽略了保留与驱逐token集之间的方向失配问题，导致即使少量的驱逐也可能放大输出偏差。为此，MomentKV提出了一种新的驱逐策略，通过考虑方向距离来更智能地选择保留哪些键值对，从而在相同缓存大小下显著减少输出降级。实验表明该方法在长文本推理任务中有效提升了性能，同时保持了低内存占用。",
+      "llm_tldr": "当前的KV缓存驱逐方法虽然最小化了被驱逐token的剩余注意力质量，但忽略了保留与驱逐token集之间的方向失配问题，导致即使少量的驱逐也可能放大输出偏差。为此，MomentKV提出了一种新的驱逐策略，通过考虑方向距离来更智能地选择保留哪些键值对，从而在相同缓存大小下显著减少输出降级。实验表明该方法在长文本推理任务中有效提升了性能，同时保持了低内存占用。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "KV cache compression techniques for reducing memory in large language model inference",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.04302v1",
+      "source": "arxiv",
+      "title": "LazyAttention: Efficient Retrieval-Augmented Generation with Deferred Positional Encoding",
+      "abstract": "Key-value (KV) caching accelerates inference of large language models (LLMs) by reusing past computations for generated tokens. Its importance becomes even greater in long-context applications such as retrieval-augmented generation (RAG) and in-context learning (ICL). However, conventional KV caching embeds positional information directly into the cache, limiting its reusability. Existing solutions either restrict reuse to prefixes or require expensive memory materialization for positional re-encoding. We introduce LazyAttention, a novel attention mechanism that kernelizes deferred positional encoding to enable zero-copy, position-agnostic KV reuse. By adjusting positional encoding within attention kernels on-the-fly, LazyAttention resolves the materialization bottleneck, allowing a single physical KV copy to serve multiple logical requests at arbitrary positions. Leveraging attention kernels tailored for prefilling and decoding, our system achieves significant efficiency improvements: under skewed document distributions, it reduces time-to-first-token (TTFT) by 1.37$\\times$ and increases inference throughput by 1.40$\\times$ compared to the state-of-the-art Block-Attention, while maintaining comparable output quality.",
+      "authors": [
+        "Haocheng Xia",
+        "Mihir Pamnani",
+        "Hanxi Fang",
+        "Supawit Chockchowwat",
+        "Yongjoo Park"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-06-03T00:12:22+00:00",
+      "link": "https://arxiv.org/pdf/2606.04302v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes LazyAttention with deferred positional encoding for zero-copy position-agnostic KV reuse",
+      "llm_evidence_cn": "提出LazyAttention通过延迟位置编码实现零拷贝位置无关KV重用",
+      "llm_evidence": "提出LazyAttention通过延迟位置编码实现零拷贝位置无关KV重用",
+      "canonical_evidence": "提出LazyAttention通过延迟位置编码实现零拷贝位置无关KV重用",
+      "llm_tldr_en": "LazyAttention introduces a novel attention mechanism that kernelizes deferred positional encoding to enable zero-copy, position-agnostic KV reuse, reducing memory and accelerating inference for RAG and ICL.",
+      "llm_tldr_cn": "传统KV缓存将位置信息直接嵌入限制复用性。本文提出LazyAttention，将位置编码延迟到注意力核内部处理，使KV缓存可位置无关零拷贝重用，显著减少内存并加速长上下文应用。实验表明，LazyAttention在保持质量同时大幅降低推理延迟，为高效KV复用提供新方案。",
+      "llm_tldr": "传统KV缓存将位置信息直接嵌入限制复用性。本文提出LazyAttention，将位置编码延迟到注意力核内部处理，使KV缓存可位置无关零拷贝重用，显著减少内存并加速长上下文应用。实验表明，LazyAttention在保持质量同时大幅降低推理延迟，为高效KV复用提供新方案。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "KV cache compression techniques for reducing memory in large language model inference",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.05742v1",
+      "source": "arxiv",
+      "title": "AdaPLD: Adaptive Retrieval and Reuse for Efficient Model-Free Speculative Decoding",
+      "abstract": "Speculative decoding accelerates generation by verifying multiple drafted tokens in a single target-model forward pass, reducing sequential decoding iterations. Model-free variants avoid auxiliary draft models by reusing text and model states already available during generation, but their speedup depends on the reliability of the constructed drafts. We identify two limitations of existing reuse-based methods: lexically anchored retrieval has limited recall under surface-form variation, and deterministic span copying can be brittle when the retrieved context does not uniquely determine the continuation. We propose \\emph{AdaPLD}, a training-free method that adaptively improves both retrieval and draft construction. AdaPLD preserves high-precision lexical reuse while using semantic similarity to recover additional reuse opportunities when lexical matching fails. It further constructs branched reuse hypotheses to account for continuation uncertainty, rather than relying on a single copied span. Across diverse benchmarks, AdaPLD reduces target-model forward passes and achieves up to $3.10\\times$ decoding speedup.",
+      "authors": [
+        "Runheng Liu",
+        "Jincheng Xie",
+        "Wen Hu",
+        "Xingchen Xiao",
+        "Heyan Huang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-06-04T06:09:44+00:00",
+      "link": "https://arxiv.org/pdf/2606.05742v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "model-free speculative decoding with adaptive retrieval and reuse",
+      "llm_evidence_cn": "无需草案模型的自适应检索与重用的推测解码",
+      "llm_evidence": "无需草案模型的自适应检索与重用的推测解码",
+      "canonical_evidence": "无需草案模型的自适应检索与重用的推测解码",
+      "llm_tldr_en": "AdaPLD improves model-free speculative decoding by adaptively retrieving and reusing text and model states, enhancing draft reliability and achieving higher speedup.",
+      "llm_tldr_cn": "现有的无模型推测解码方法在检索时受限于词汇形式变化，且确定性跨度复制在上下文不唯一时脆弱。AdaPLD提出一种自适应方法，通过改进检索和草案构建，在无需额外训练的情况下提高了推测解码的效率。它利用了语义检索和动态跨度选择，使得单次目标模型前向传播中可以验证更多正确token，从而加速LLM生成。实验表明，AdaPLD在多个基准上显著提升了加速比。",
+      "llm_tldr": "现有的无模型推测解码方法在检索时受限于词汇形式变化，且确定性跨度复制在上下文不唯一时脆弱。AdaPLD提出一种自适应方法，通过改进检索和草案构建，在无需额外训练的情况下提高了推测解码的效率。它利用了语义检索和动态跨度选择，使得单次目标模型前向传播中可以验证更多正确token，从而加速LLM生成。实验表明，AdaPLD在多个基准上显著提升了加速比。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "eagle based speculative decoding for LLM inference acceleration",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.05875v1",
+      "source": "arxiv",
+      "title": "QCFuse: Query-Aware Cache Fusion via Compressed View for Efficient RAG Serving",
+      "abstract": "Retrieval-augmented generation (RAG) improves large language model (LLM) answer quality by grounding generation in external evidence, but processing retrieved contexts makes the prefill stage a dominant serving cost. RAG cache fusion reduces this cost by reusing precomputed key-value (KV) caches for retrieved chunks and selectively recomputing tokens under the current prompt. Existing selectors, however, face a dilemma between quality and efficiency: fast query-agnostic or final-layer query-to-context selectors can miss request-relevant evidence, whereas full-view query-aware selectors require broad context and layer visibility before recomputation and therefore stall the layer-wise cache-fusion pipeline. We present QCFuse, a compressed-view query-aware selector for RAG cache fusion. QCFuse uses chunk-anchor query probing to condition user-query states on compact per-chunk anchors and critical-layer profiling to identify recomputation tokens without all-layer inspection. We implement QCFuse in SGLang and evaluate it on four open-weight LLMs across six datasets. QCFuse reaches full-prefill-level quality. At matched quality, QCFuse achieves an average prefill-time speedup of 1.7x over full prefill and 1.5x over ProphetKV, the strongest quality-preserving baseline.",
+      "authors": [
+        "Jianxin Yan",
+        "Wangze Ni",
+        "Zhenxin Li",
+        "Jiabao Jin",
+        "Zhitao Shen",
+        "Haoyang Li",
+        "Jia Zhu",
+        "Peng Cheng",
+        "Xuemin Lin",
+        "Lei Chen",
+        "Kui Ren"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.DB"
+      ],
+      "published": "2026-06-04T08:47:46+00:00",
+      "link": "https://arxiv.org/pdf/2606.05875v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "prefill stage optimization via query-aware KV cache fusion for RAG",
+      "llm_evidence_cn": "通过查询感知KV缓存融合优化RAG预填充阶段",
+      "llm_evidence": "通过查询感知KV缓存融合优化RAG预填充阶段",
+      "canonical_evidence": "通过查询感知KV缓存融合优化RAG预填充阶段",
+      "llm_tldr_en": "QCFuse proposes a compressed-view query-aware cache fusion selector that balances quality and efficiency for reusing KV caches in RAG prefill.",
+      "llm_tldr_cn": "RAG中检索上下文处理使预填充阶段成为主要服务成本。现有缓存选择器在质量和效率间难以平衡。本文提出QCFuse，采用压缩视图的查询感知选择器，在不影响流水线的前提下选择相关缓存块，显著降低预填充延迟。",
+      "llm_tldr": "RAG中检索上下文处理使预填充阶段成为主要服务成本。现有缓存选择器在质量和效率间难以平衡。本文提出QCFuse，采用压缩视图的查询感知选择器，在不影响流水线的前提下选择相关缓存块，显著降低预填充延迟。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "optimization of prefilling stage in large language model inference",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.07710v1",
+      "source": "arxiv",
+      "title": "WhiFlash: Accelerating Speculative Decoding with Token-Level Cross-Paradigm Routing",
+      "abstract": "The autoregressive nature of large language models (LLMs) remains a significant bottleneck for inference, particularly in complex agentic workloads. While speculative decoding (SD) accelerates inference, current approaches rely on static drafting paradigms, utilising either autoregressive drafting models for reasoning or diffusion-based parallel drafting models for structured outputs. We empirically find that drafting accuracy fluctuates dramatically within a single sequence, leaving significant performance unrealised by static paradigms and coarse-grained routing. To address this volatility, we introduce WhiFlash, the first cross-paradigm SD method that unifies autoregressive and diffusion-based parallel drafting under a single token-level controller. WhiFlash adopts a fine-grained routing mechanism that employs either a lightweight entropy-based or a learned neural policy, both parametrised to provide a tunable balance between expected token gain and latency. To make high-frequency switching computationally viable, we introduce novel cache-management optimisations, Lazy Catch-up and KV-only Prefill, reducing switching overhead to below 7% of per-round latency. By capitalising on the complementary strengths of fundamentally distinct drafting architectures, WhiFlash achieves significantly higher acceptance lengths, yielding category-specific throughput gains of up to 69.6% over the state-of-the-art autoregressive EAGLE-3 and 37.3% over the diffusion-based DFlash.",
+      "authors": [
+        "Young D. Kwon",
+        "Miles Williams",
+        "Rui Li",
+        "Alexandros Kouris",
+        "Stylianos I. Venieris"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-06-05T13:23:33+00:00",
+      "link": "https://arxiv.org/pdf/2606.07710v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "token-level cross-paradigm routing for speculative decoding",
+      "llm_evidence_cn": "令牌级跨范式路由加速推测解码",
+      "llm_evidence": "令牌级跨范式路由加速推测解码",
+      "canonical_evidence": "令牌级跨范式路由加速推测解码",
+      "llm_tldr_en": "WhiFlash unifies autoregressive and diffusion drafting under token-level routing to dynamically select the best draft paradigm per token, accelerating LLM inference.",
+      "llm_tldr_cn": "现有推测解码使用静态草稿范式，但每个token的准确率波动大。本文提出WhiFlash，首个跨范式推测解码方法，在令牌级统一自回归和扩散并行草稿，根据实时准确性动态路由，显著提升生成吞吐量。",
+      "llm_tldr": "现有推测解码使用静态草稿范式，但每个token的准确率波动大。本文提出WhiFlash，首个跨范式推测解码方法，在令牌级统一自回归和扩散并行草稿，根据实时准确性动态路由，显著提升生成吞吐量。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "eagle based speculative decoding for LLM inference acceleration",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.09079v1",
+      "source": "arxiv",
+      "title": "FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention",
+      "abstract": "Conventional LLMs keep the full KV cache loaded during decoding, causing a severe GPU memory bottleneck for ultra-long context serving. In this report, we propose Lookahead Sparse Attention (LSA), a novel inference paradigm powered by a Neural Memory Indexer built upon the DeepSeek-V4 architecture. Rather than passively attending to all historical tokens, LSA proactively predicts future context demands and preserves only the query-critical KV chunks in the GPU memory. Crucially, we instantiate this architecture via a backbone-free decoupled training strategy. By formulating the indexer as a standard dual-encoder architecture, we train it independently using standard retrieval training frameworks without ever loading the massive backbone model into GPU memory.   We demonstrate that this \"less is more\" paradigm significantly maximizes serving efficiency while acting as an effective attention denoiser in tasks that rely on long-term global memory. Across primary long-context evaluation suites (e.g., LongBench-v2, LongMemEval, and RULER), FM-DS-V4 compresses the average physical KV cache footprint down to merely 13.5% of the full-context baseline, while consistently preserving or slightly elevating downstream accuracy (+0.6% absolute margin on average). Crucially, at extreme 500K scales, FlashMemory suppresses the physical KV cache overhead by over 90% without destabilizing the backbone's core reasoning capacities.",
+      "authors": [
+        "Yan Wang",
+        "Qifan Zhang",
+        "Jiachen Yu",
+        "Tian Liang",
+        "Dongyang Ma",
+        "Xiang Hu",
+        "Zibo Lin",
+        "Chunyang Li",
+        "Zhichao Wang",
+        "Jia Li",
+        "Yujiu Yang",
+        "Haitao Mi",
+        "Dong Yu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-06-08T06:25:54+00:00",
+      "link": "https://arxiv.org/pdf/2606.09079v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "KV cache compression via lookahead sparse attention",
+      "llm_evidence_cn": "通过前瞻稀疏注意力压缩KV缓存",
+      "llm_evidence": "通过前瞻稀疏注意力压缩KV缓存",
+      "canonical_evidence": "通过前瞻稀疏注意力压缩KV缓存",
+      "llm_tldr_en": "Proposes Lookahead Sparse Attention that predicts future context demands and retains only critical KV chunks, drastically reducing GPU memory for ultra-long context decoding.",
+      "llm_tldr_cn": "传统LLM解码时需加载完整KV缓存，导致长上下文场景GPU内存瓶颈。本文提出前瞻稀疏注意力（LSA），通过神经内存索引器预测未来上下文需求，仅保留查询关键KV块，显著降低内存占用。采用解耦训练策略独立训练索引器，无需加载大模型主干。该方法可大幅提升超长上下文推理效率。",
+      "llm_tldr": "传统LLM解码时需加载完整KV缓存，导致长上下文场景GPU内存瓶颈。本文提出前瞻稀疏注意力（LSA），通过神经内存索引器预测未来上下文需求，仅保留查询关键KV块，显著降低内存占用。采用解耦训练策略独立训练索引器，无需加载大模型主干。该方法可大幅提升超长上下文推理效率。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "KV cache compression techniques for reducing memory in large language model inference",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.09080v1",
+      "source": "arxiv",
+      "title": "Beyond FLOPs: Benchmarking Real Inference Acceleration of LLM Pruning under a GEMM-Centric Taxonomy",
+      "abstract": "Pruning has emerged as a dominant paradigm for accelerating large language model (LLM) inference, spanning a broad spectrum of methods that remove computation across tokens, layers, heads, dimensions, and attention patterns. Despite sharing the same objective, these pruning approaches induce fundamentally different execution behaviors, causing realized speedups to depend heavily on hardware and kernel implementations. Consequently, the practical acceleration benefits of different pruning families remain poorly understood. In this work, we introduce a GEMM-centric taxonomy that reorganizes existing pruning methods according to the logical \\textbf{M}, \\textbf{N}, and \\textbf{K} dimensions of general matrix multiplication (GEMM). Leveraging this abstraction, we build a unified benchmarking framework that enables implementation-consistent comparison across the pruning design space and systematically characterizes the acceleration--quality Pareto frontier. Our results show that static depth pruning remains the strongest Pareto-optimal baseline and stays closest to its theoretical acceleration upper bound in memory-bounded scenarios. During prefill, the frontier transitions from static depth at low quality loss (0\\%--4\\%), to dynamic depth at moderate loss (5\\%--16\\%), and finally to static width pruning at higher loss levels (17\\%--26\\%). These findings establish the first unified view of the practical limits of pruning-based LLM acceleration and provide guidance for future pruning research.\\footnote{Code is available at https://github.com/EIT-NLP/LLM-Pruning/tree/main/PruningInferSim}",
+      "authors": [
+        "Haozhe Hu",
+        "Hao Wu",
+        "Anhao Zhao",
+        "Longwei Ding",
+        "Peiran Yin",
+        "Yunpu Ma",
+        "Xiaoyu Shen"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-06-08T06:26:18+00:00",
+      "link": "https://arxiv.org/pdf/2606.09080v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Benchmarks real inference acceleration of LLM pruning under GEMM-centric taxonomy",
+      "llm_evidence_cn": "在GEMM中心分类法下基准测试LLM剪枝的真实推理加速",
+      "llm_evidence": "在GEMM中心分类法下基准测试LLM剪枝的真实推理加速",
+      "canonical_evidence": "在GEMM中心分类法下基准测试LLM剪枝的真实推理加速",
+      "llm_tldr_en": "This paper introduces a GEMM-centric taxonomy to reorganize LLM pruning methods and benchmarks their real inference acceleration, revealing that practical speedups depend heavily on hardware and kernel implementations.",
+      "llm_tldr_cn": "现有LLM剪枝方法虽旨在加速推理，但实际加速效果因硬件和内核差异巨大。本文提出基于通用矩阵乘法维度的分类法，重新组织各类剪枝方法，并通过系统基准测试揭示不同剪枝族在真实硬件上的加速表现。该工作为选择高效剪枝策略提供实用指南，有助于加速LLM推理。",
+      "llm_tldr": "现有LLM剪枝方法虽旨在加速推理，但实际加速效果因硬件和内核差异巨大。本文提出基于通用矩阵乘法维度的分类法，重新组织各类剪枝方法，并通过系统基准测试揭示不同剪枝族在真实硬件上的加速表现。该工作为选择高效剪枝策略提供实用指南，有助于加速LLM推理。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "large language model inference acceleration",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.09508v1",
+      "source": "arxiv",
+      "title": "From Rigid to Dynamic: Entropy-Guided Adaptive Inference for Long-Context LLMs",
+      "abstract": "Existing sparse attention and KV cache compression methods for long-context LLM inference typically apply fixed sparsity patterns or uniform budgets across all attention heads, overlooking the substantial variation in attention behavior among heads and contexts. We observe two distinct entropy patterns among attention heads: Rigid Heads, whose entropy stays near zero across input segments, and Dynamic Heads, whose entropy fluctuates significantly. Crucially, the distribution of these types is context-dependent and cannot be predetermined offline. We therefore propose EntropyInfer, a training-free framework that uses attention entropy to adaptively allocate compute at the granularity of individual heads and segments during prefilling. For decoding, we introduce a latent KV cache compression scheme that leverages generated output tokens, rather than prefill tokens alone, to identify and retain the most critical cache entries. Extensive experiments on Llama, Qwen and openPangu model series show that EntropyInfer consistently outperforms baselines including SnapKV, AdaKV, and CritiPrefill, achieving up to 2.39$\\times$ end-to-end speedup beyond 100k tokens with minimal quality degradation compared to full attention. The code is released in https://github.com/SHA-4096/EntropyInfer.",
+      "authors": [
+        "Zhanchao Xu",
+        "Haoyang Li",
+        "Qingfa Xiao",
+        "Fei Teng",
+        "Chen Jason Zhang",
+        "Lei Chen",
+        "Qing Li"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-06-08T14:02:18+00:00",
+      "link": "https://arxiv.org/pdf/2606.09508v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "entropy-guided adaptive KV cache compression for long-context LLMs",
+      "llm_evidence_cn": "基于熵引导的自适应KV缓存压缩方法用于长上下文LLM推理",
+      "llm_evidence": "基于熵引导的自适应KV缓存压缩方法用于长上下文LLM推理",
+      "canonical_evidence": "基于熵引导的自适应KV缓存压缩方法用于长上下文LLM推理",
+      "llm_tldr_en": "EntropyInfer uses attention entropy to adaptively allocate compute and KV cache budgets per head and segment during prefilling and decoding, enabling training-free efficient long-context LLM inference.",
+      "llm_tldr_cn": "该论文针对长上下文LLM推理中KV缓存开销大、固定稀疏模式不灵活的问题，提出EntropyInfer训练无关框架。通过分析注意力头熵模式，将头分为刚性头和动态头，并在预填充和解码阶段按头和分段自适应分配计算和KV缓存预算。实验验证该方法能显著降低内存和计算，同时保持生成质量，为KV缓存压缩提供了动态高效方案。",
+      "llm_tldr": "该论文针对长上下文LLM推理中KV缓存开销大、固定稀疏模式不灵活的问题，提出EntropyInfer训练无关框架。通过分析注意力头熵模式，将头分为刚性头和动态头，并在预填充和解码阶段按头和分段自适应分配计算和KV缓存预算。实验验证该方法能显著降低内存和计算，同时保持生成质量，为KV缓存压缩提供了动态高效方案。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "KV cache compression techniques for reducing memory in large language model inference",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.09659v1",
+      "source": "arxiv",
+      "title": "End-to-End Context Compression at Scale",
+      "abstract": "Long-context language model inference is bottlenecked by memory, as the KV cache grows with context length. Recent techniques to compress the KV cache fall short: they either degrade model quality substantially or require considerable time and compute to compress a single long prompt. Furthermore, many methods require the input to fit within the target model's context window, and are generally incompatible with modern production inference engines. Encoder-decoder compressors, which map a long token sequence to a shorter sequence of latent embeddings consumed by a decoder, are an appealing alternative in principle. However, existing approaches are not competitive with KV cache compression on the accuracy-efficiency frontier. In this work, we revisit encoder-decoder compression and close this gap. We first perform an architecture search, pre-training many variants from scratch to determine how best to design and train encoder-decoder compressors. Guided by our findings, we continually pre-train a family of 0.6B-encoder, 4B-decoder models on over 350B tokens each, at compression ratios of 1:4, 1:8, and 1:16. We introduce Latent Context Language Models (LCLMs), a family of compressors that improve the Pareto frontier across general-task performance, compression speed, and peak memory usage. We demonstrate that LCLMs serve as efficient backbones for long-horizon agents, letting the agent skim through a compressed long context and adaptively expand relevant segments on demand.",
+      "authors": [
+        "Ang Li",
+        "Sean McLeish",
+        "Haozhe Chen",
+        "Nimit Kalra",
+        "Zaiqian Chen",
+        "Artem Gazizov",
+        "Venkata Anoop Suhas Kumar Morisetty",
+        "Bhavya Kailkhura",
+        "Harshitha Menon",
+        "Zhuang Liu",
+        "Brian R. Bartoldson",
+        "Tom Goldstein",
+        "Sanae Lotfi",
+        "Micah Goldblum",
+        "Pavel Izmailov"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-06-08T15:43:16+00:00",
+      "link": "https://arxiv.org/pdf/2606.09659v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "End-to-end context compression at scale using encoder-decoder compressors for KV cache reduction",
+      "llm_evidence_cn": "使用编码器-解码器压缩器大规模端到端上下文压缩减少KV缓存",
+      "llm_evidence": "使用编码器-解码器压缩器大规模端到端上下文压缩减少KV缓存",
+      "canonical_evidence": "使用编码器-解码器压缩器大规模端到端上下文压缩减少KV缓存",
+      "llm_tldr_en": "This paper revisits encoder-decoder compression for long-context LLM inference, achieving competitive accuracy-efficiency trade-offs compared to KV cache compression methods.",
+      "llm_tldr_cn": "长上下文LLM推理受限于KV缓存内存增长。本文重新审视编码器-解码器压缩器，将长序列映射为较短潜在嵌入序列，与KV缓存压缩方法相比在精度-效率前沿具有竞争力。实验表明该方法在压缩比和模型质量间取得更好平衡，兼容现有推理引擎，为大规模上下文压缩提供实用方案。",
+      "llm_tldr": "长上下文LLM推理受限于KV缓存内存增长。本文重新审视编码器-解码器压缩器，将长序列映射为较短潜在嵌入序列，与KV缓存压缩方法相比在精度-效率前沿具有竞争力。实验表明该方法在压缩比和模型质量间取得更好平衡，兼容现有推理引擎，为大规模上下文压缩提供实用方案。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "KV cache compression techniques for reducing memory in large language model inference",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2605.20104v1",
+      "source": "arxiv",
+      "title": "Draft Less, Retrieve More: Hybrid Tree Construction for Speculative Decoding",
+      "abstract": "Speculative decoding (SD) accelerates large language model inference by leveraging a draft-then-verify paradigm. To maximize the acceptance rate, recent methods construct expansive draft trees, which unfortunately incur severe VRAM bandwidth and computational overheads that bottleneck end-to-end speedups. While dynamic-depth pruning can reduce this latency by removing marginal branches, it also discards potentially valid candidates, preventing the acceptance rate from reaching the upper bound of dense trees. In this paper, we identify a critical opportunity in resource allocation: the transition from dense to pruned drafting frees up significant computational budget. To break this Pareto tradeoff, we introduce Graft, a compensation framework that couples pruning and retrieval as mutually reinforcing operations. Pruning supplies sufficient budget for retrieval, while retrieval compensates for pruning-induced coverage loss and recovers accepted length. By employing a sequential `prune-then-graft' mechanism, Graft attaches highly predictive retrieved tokens into positions opened by pruning, filling the topological gaps with near-zero overhead. Graft is entirely training-free and lossless. Comprehensive evaluations show that Graft establishes a new Pareto frontier across practical deployment settings, including short-context generation, long-context generation, and large-scale models. On short-context benchmarks, it achieves up to 5.41$\\times$ speedup and improves average speedup over EAGLE-3 by up to 21.8% on the large-scale Qwen3-235B. We also provide a preliminary exploration of applying Graft to the DFlash-style block drafting paradigm, offering initial evidence and insights for extending grafting beyond autoregressive draft trees.",
+      "authors": [
+        "Yuhao Shen",
+        "Tianyu Liu",
+        "Xinyi Hu",
+        "Quan Kong",
+        "Baolin Zhang",
+        "Jun Dai",
+        "Jun Zhang",
+        "Shuang Ge",
+        "Lei Chen",
+        "Yue Li",
+        "Mingcheng Wan",
+        "Cong Wang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-05-19T16:55:48+00:00",
+      "link": "https://arxiv.org/pdf/2605.20104v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "hybrid tree construction for speculative decoding",
+      "llm_evidence_cn": "推测解码的混合树构建",
+      "llm_evidence": "推测解码的混合树构建",
+      "canonical_evidence": "推测解码的混合树构建",
+      "llm_tldr_en": "Graft introduces hybrid tree construction that compensates pruned branches with retrieved candidates, breaking the tradeoff between acceptance rate and overhead in speculative decoding.",
+      "llm_tldr_cn": "针对推测解码中稠密草案树导致带宽开销大而稀疏树降低接受率的问题，Graft提出混合树架构：在修剪边缘分支后用检索候选补偿，从而在不增加开销的情况下保持高接受率。该方法打破了传统帕累托权衡，显著提升了端到端加速比。",
+      "llm_tldr": "针对推测解码中稠密草案树导致带宽开销大而稀疏树降低接受率的问题，Graft提出混合树架构：在修剪边缘分支后用检索候选补偿，从而在不增加开销的情况下保持高接受率。该方法打破了传统帕累托权衡，显著提升了端到端加速比。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "eagle based speculative decoding for LLM inference acceleration",
+      "matched_requirement_id": "req-7",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.20104v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.04063v1",
+      "source": "arxiv",
+      "title": "LLM Compression with Jointly Optimizing Architectural and Quantization choices",
+      "abstract": "Deploying large language models (LLMs) is challenging due to their significant memory and computational requirements. While some methods address this by developing small or tiny language models from scratch, these approaches demand extensive GPU training. Compressing pre-trained LLMs for edge devices offers a compelling alternative. Beyond pruning and quantization, Neural Architecture Search (NAS) enables effective compression, yet prior NAS approaches often limit the search space and decouple architecture from quantization. We introduce a differentiable NAS framework that explores the entire space and jointly optimizes architectural configurations alongside mixed-precision quantization for linear layers of LLMs. Experiments demonstrate superior accuracy-latency trade-offs: our models achieve up to 1.4x faster inference than sequential NAS-then-quantization baselines at comparable accuracy, or up to 6% higher average accuracy across seven reasoning tasks at equivalent latency.",
+      "authors": [
+        "Hoang-Loc La",
+        "Truong-Thanh Le",
+        "Amir Taherkordi",
+        "Phuong Hoai Ha"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-06-02T12:57:28+00:00",
+      "link": "https://arxiv.org/pdf/2606.04063v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LLM compression for efficient inference",
+      "llm_evidence_cn": "大语言模型压缩以实现高效推理",
+      "llm_evidence": "大语言模型压缩以实现高效推理",
+      "canonical_evidence": "大语言模型压缩以实现高效推理",
+      "llm_tldr_en": "Introduces a differentiable NAS framework jointly optimizing architecture and mixed-precision quantization for LLM linear layers, reducing memory and computation for deployment.",
+      "llm_tldr_cn": "大模型部署面临内存和计算挑战。本文提出可微分神经架构搜索（NAS）框架，联合优化线性层的架构配置与混合精度量化。相比先前方法，该框架探索完整搜索空间并解耦架构与量化决策。实验表明，在压缩比和精度权衡上优于现有方案，促进边缘设备部署。",
+      "llm_tldr": "大模型部署面临内存和计算挑战。本文提出可微分神经架构搜索（NAS）框架，联合优化线性层的架构配置与混合精度量化。相比先前方法，该框架探索完整搜索空间并解耦架构与量化决策。实验表明，在压缩比和精度权衡上优于现有方案，促进边缘设备部署。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "large language model inference acceleration",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.01806v1",
+      "source": "arxiv",
+      "title": "ProbeScale: Probing Analysis to Optimize Neural Scaling Laws for Efficient Small Language Model Inference",
+      "abstract": "Small Language Models (SLMs) offer a balance between capability and computational feasibility. Neural scaling laws inform their optimal training, suggesting that they possess rich internal representations that scale with their size. However, deploying even these SLMs can be challenging under strict resource constraints. Language model probing provides methods for analyzing the linguistic knowledge encoded in a model's internals. We propose ProbScale, a framework that unifies insights from scaling laws and probing to identify parameter-efficient subnetworks within pre-trained SLMs. ProbScale utilizes the high-quality representations of well-scaled SLMs and uses task-specific probes to mathematically quantify the relevance of each layer for target downstream capabilities. This allows selecting subnetworks that optimally trade off performance against parameter size. We formulate the subnetwork selection as finding a layer subset maximizing aggregated, task-weighted probe performance under a parameter budget. Experiments on representative SLMs such as RoBERTa-Large and T5-Base demonstrate that ProbScale identifies subnetworks achieving significant parameter reduction, from 5 to 10 times, while maintaining high performance (95% to 98% of the original SLMs) on targeted tasks, outperforming heuristic baselines.",
+      "authors": [
+        "Sourav Das"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-06-01T07:24:37+00:00",
+      "link": "https://arxiv.org/pdf/2606.01806v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Efficient small language model inference via probing",
+      "llm_evidence_cn": "通过探针分析优化小语言模型推理效率",
+      "llm_evidence": "通过探针分析优化小语言模型推理效率",
+      "canonical_evidence": "通过探针分析优化小语言模型推理效率",
+      "llm_tldr_en": "Proposes ProbScale to identify parameter-efficient subnetworks in SLMs using probing analysis and scaling laws, enabling efficient inference under strict resource constraints.",
+      "llm_tldr_cn": "小语言模型（SLM）部署受严格资源限制。本文提出ProbScale框架，结合缩放定律和探针分析，识别预训练SLM中参数高效子网络。利用高质量内部表示，通过任务特定探针量化子网络相关性，从而在不显著降低性能的前提下减少计算量，实现高效推理。",
+      "llm_tldr": "小语言模型（SLM）部署受严格资源限制。本文提出ProbScale框架，结合缩放定律和探针分析，识别预训练SLM中参数高效子网络。利用高质量内部表示，通过任务特定探针量化子网络相关性，从而在不显著降低性能的前提下减少计算量，实现高效推理。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "large language model inference acceleration",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2605.24144v1",
+      "source": "arxiv",
+      "title": "EVA: Accelerating LLM Decoding via an Efficient Vector Quantization Architecture",
+      "abstract": "Large Language Models (LLMs) have achieved impressive performance across diverse domains but remain inefficient during the autoregressive decoding phase. Unlike the prefill stage, which employs compute-bound GEMM operations, decoding executes a sequence of small GEMV-like computations that are memory-bound and underutilize modern accelerators. Weight-only vector quantization (VQ) has emerged as an effective compression technique that clusters model weights into a shared codebook and replaces the original weight matrix with low-precision indices, enabling 2-bit-level weight compression. While this approach substantially reduces model size and memory bandwidth, it still suffers from two critical inefficiencies: the low utilization of GEMV computation and frequent memory conflicts during codebook lookups.   This paper presents EVA, an efficient vector-quantization-based architecture that addresses both computational and memory bottlenecks in LLM decoding. EVA builds on a simple yet effective insight that combines input-codebook computation with conflict-free memory access. Instead of reconstructing quantized weights from indices, EVA directly performs dot products between input vectors and the weight codebook, transforming LLM decoding from GEMV to GEMM computation. It then performs structured lookups from an intermediate output buffer, eliminating memory bank conflicts. We further design a hardware-software co-optimized architecture specialized for LLM decoding while remaining compatible with conventional prefill execution. Evaluations show that EVA achieves up to 11.17$\\times$ speedup and 7.17$\\times$ higher energy efficiency compared with the SOTA lookup-based architecture, while preserving arithmetic precision after vector quantization. Our code is available at https://github.com/dbw6/Eva.git.",
+      "authors": [
+        "Bowen Duan",
+        "Cong Guo",
+        "Chiyue Wei",
+        "Haoxuan Shan",
+        "Yuzhe Fu",
+        "Xinhua Chen",
+        "Yifan Xu",
+        "Ziyue Zhang",
+        "Changchun Zhou",
+        "Hai Li",
+        "Yiran Chen"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.LG"
+      ],
+      "published": "2026-05-22T19:06:22+00:00",
+      "link": "https://arxiv.org/pdf/2605.24144v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Weight-only vector quantization for decoding speedup",
+      "llm_evidence_cn": "权重量化加速解码阶段",
+      "llm_evidence": "权重量化加速解码阶段",
+      "canonical_evidence": "权重量化加速解码阶段",
+      "llm_tldr_en": "EVA uses vector quantization to compress LLM weights to 2-bit, reducing memory bandwidth and accelerating memory-bound decoding.",
+      "llm_tldr_cn": "EVA针对LLM解码阶段的内存瓶颈，提出高效的向量量化架构，将模型权重压缩至2位级别，显著减少内存带宽需求，从而加速自回归解码。该方法解决了GEMV计算低效的问题，在保持精度的同时提升了吞吐量。",
+      "llm_tldr": "EVA针对LLM解码阶段的内存瓶颈，提出高效的向量量化架构，将模型权重压缩至2位级别，显著减少内存带宽需求，从而加速自回归解码。该方法解决了GEMV计算低效的问题，在保持精度的同时提升了吞吐量。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "optimization of decoding stage in large language model inference",
+      "matched_requirement_id": "req-6",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.24144v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.05429v1",
+      "source": "arxiv",
+      "title": "Minimizing the Hidden Cost of Scales: Graph-Guided Ultra-Low-Bit Quantization for Large Language Models",
+      "abstract": "Post-training quantization (PTQ) is critical for the efficient deployment of large language models (LLMs). Recent ultra-low-bit PTQ methods rely on rigid weight-saliency assumptions or position heuristics, introducing substantial hidden scaling overhead. We propose SAGE-PTQ (Saliency-Aware Graph-guided Efficient PTQ), a novel ultra-low-bit quantization framework for LLMs that minimizes hidden scaling cost. SAGE-PTQ separates salient and unsalient weights using distributional statistics, then models subsampled unsalient weights as a sparse graph to estimate the optimal number of groups per layer. SAGE-PTQ applies dual-mode quantization, assigning multi-bit precision to salient weights and binarizing unsalient weights. To reduce scaling overhead, SAGE-PTQ uses one per-channel scale for salient weights and one scalar per unsalient group. Finally, SAGE-PTQ implements adaptive saliency thresholding to select the optimal saliency ratio per matrix. SAGE-PTQ achieves 1.03 weight bits and only 0.004 scaling bits per matrix on average, outperforming state-of-the-art methods such as BiLLM and PB-LLM. On LLaMA-3-8B, SAGE-PTQ achieves 6.74 WikiText2 perplexity, compared to 55.8 for BiLLM, while using less than 50% of BiLLM's GPU memory. On LLaMA-2-70B, SAGE-PTQ provides 1.5x faster decoding on one NVIDIA L40 GPU, demonstrating practical inference efficiency.",
+      "authors": [
+        "Rayyan Abdalla",
+        "Amir Hussein",
+        "Min Wu",
+        "Dinesh Manocha"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-06-03T20:51:52+00:00",
+      "link": "https://arxiv.org/pdf/2606.05429v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Ultra-low-bit quantization for LLM inference acceleration",
+      "llm_evidence_cn": "超低位量化加速大语言模型推理",
+      "llm_evidence": "超低位量化加速大语言模型推理",
+      "canonical_evidence": "超低位量化加速大语言模型推理",
+      "llm_tldr_en": "Proposes SAGE-PTQ, a graph-guided ultra-low-bit quantization framework that minimizes hidden scaling cost via saliency-aware weight separation and dual-mode quantization.",
+      "llm_tldr_cn": "后训练量化（PTQ）对LLM高效部署至关重要。现有超低位PTQ方法存在隐藏缩放开销。本文提出SAGE-PTQ，利用分布统计分离显著与非显著权重，将非显著权重建模为稀疏图估计最优分组数，并对显著权重采用多比特、非显著权重二值化。在保持精度的同时实现极低比特量化。",
+      "llm_tldr": "后训练量化（PTQ）对LLM高效部署至关重要。现有超低位PTQ方法存在隐藏缩放开销。本文提出SAGE-PTQ，利用分布统计分离显著与非显著权重，将非显著权重建模为稀疏图估计最优分组数，并对显著权重采用多比特、非显著权重二值化。在保持精度的同时实现极低比特量化。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "large language model inference acceleration",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.05014v1",
+      "source": "arxiv",
+      "title": "Depth-Attention: Cross-Layer Value Mixing for Language Models",
+      "abstract": "Self-attention selects information freely across the sequence, but across depth, Transformers merely add each layer's output to the residual stream, so later layers cannot selectively reuse earlier-layer representations. Recent cross-layer methods improve this flow but operate on hidden states outside attention, adding state beyond the key-value cache at inference--a cost that becomes increasingly salient as modern LLMs compress the cache with grouped-query and multi-head latent attention. We introduce Depth-Attention, which performs this selection inside the attention module itself: before a layer attends over the sequence, its query attends over the keys of earlier layers at the same token position and mixes their values into the value that self-attention then reads. Because Depth-Attention reuses the standard attention queries, keys, and value-cache slots, storing depth-mixed values in place of the original values, it adds no parameters and introduces no persistent inference state beyond the standard key-value cache--the same cache size as a vanilla decoder and less than hidden-state-based cross-layer methods. On Qwen3-style decoders at 1.5B and 3B parameters, Depth-Attention attains the lowest perplexity and the highest average downstream accuracy, improving over the vanilla Transformer by up to 2.3 accuracy points and surpassing strong cross-layer baselines in perplexity and average accuracy, while adding under 0.01% extra arithmetic FLOPs and no additional persistent inference state. The gains hold from 360M to 3B parameters and extend to looped Transformers.",
+      "authors": [
+        "Boyi Zeng",
+        "Yiqin Hao",
+        "Zitong Wang",
+        "Shixiang Song",
+        "He Li",
+        "Feichen Song",
+        "Yifan Liu",
+        "Ziwei He",
+        "Xinbing Wang",
+        "Zhouhan Lin"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-06-03T15:33:45+00:00",
+      "link": "https://arxiv.org/pdf/2606.05014v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "new attention mechanism that selectively mixes values across layers, improving upon standard attention; relates to FlashAttention/PagedAttention advances",
+      "llm_evidence_cn": "新的注意力机制跨层选择性混合值，是对标准注意力的改进，与FlashAttention和PagedAttention等注意力优化相关",
+      "llm_evidence": "新的注意力机制跨层选择性混合值，是对标准注意力的改进，与FlashAttention和PagedAttention等注意力优化相关",
+      "canonical_evidence": "新的注意力机制跨层选择性混合值，是对标准注意力的改进，与FlashAttention和PagedAttention等注意力优化相关",
+      "llm_tldr_en": "Depth-Attention enhances Transformer by allowing cross-layer value mixing within the attention module, improving representation flow without extra KV cache overhead, advancing attention mechanism design for efficient LLMs.",
+      "llm_tldr_cn": "针对Transformer中后层无法直接重用前层表示的问题，本文提出Depth-Attention，在注意力模块内部引入跨层值混合机制。查询向量在关注序列位置之前，先关注同位置前层的键，将其值混合到当前注意力计算中。该方法在不增加KV缓存开销的前提下提升了信息流动，为设计更高效的大语言模型注意力机制提供了新思路，与FlashAttention和PagedAttention等注意力优化工作一脉相承。",
+      "llm_tldr": "针对Transformer中后层无法直接重用前层表示的问题，本文提出Depth-Attention，在注意力模块内部引入跨层值混合机制。查询向量在关注序列位置之前，先关注同位置前层的键，将其值混合到当前注意力计算中。该方法在不增加KV缓存开销的前提下提升了信息流动，为设计更高效的大语言模型注意力机制提供了新思路，与FlashAttention和PagedAttention等注意力优化工作一脉相承。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "recent progress in FlashAttention and PagedAttention for LLM speedup",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2605.25475v1",
+      "source": "arxiv",
+      "title": "IndexMem: Learned KV-Cache Eviction with Latent Memory for Long-Context LLM Inference",
+      "abstract": "Large Language Models (LLMs) are increasingly expected to operate over long contexts, yet standard softmax attention incurs a KV cache that grows linearly with sequence length, quickly becoming the bottleneck for long context inference. A practical remedy is to evict less important KV entries; however, existing eviction policies are largely heuristic and struggle to capture the rich, input-dependent distribution of token importance. In this work, we introduce a learnable indexer that predicts KV importance, enabling more accurate retention of critical tokens. Meanwhile, naively evicting tokens permanently discards their information, leading to irreversible forgetting and degraded retrieval over long ranges. To address this, we propose a lightweight latent memory module that compresses evicted tokens into a compact, online-updated state and provides residual readouts to compensate for the attention contributions lost through KV eviction. Collectively, our method enables accurate long-context inference under a bounded KV budget, delivering consistent improvements on RULER (4K/16K) across Qwen, Mistral, and Llama models (up to 25 points under aggressive eviction), markedly more stable Needle-in-a-Haystack retrieval, and superior LongBench scores and compression curves compared to existing eviction policies.",
+      "authors": [
+        "Xintong Yang",
+        "Hao Gu",
+        "Binxing Xu",
+        "Lujun Li",
+        "Bei Liu",
+        "Jiacheng Liu",
+        "Qiyuan Zhu",
+        "Sirui Han",
+        "Yike Guo"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-05-25T06:29:43+00:00",
+      "link": "https://arxiv.org/pdf/2605.25475v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "learned KV importance prediction for eviction and latent memory to prevent forgetting",
+      "llm_evidence_cn": "学习KV重要度预测以逐出，潜记忆防止遗忘",
+      "llm_evidence": "学习KV重要度预测以逐出，潜记忆防止遗忘",
+      "canonical_evidence": "学习KV重要度预测以逐出，潜记忆防止遗忘",
+      "llm_tldr_en": "IndexMem uses a learned indexer to predict KV importance for eviction and a latent memory to retain long-range information.",
+      "llm_tldr_cn": "长上下文推理中KV缓存过大，现有逐出策略启发式且易遗忘。本文提出IndexMem，可学习索引器预测KV重要性以精准保留关键token，并引入潜记忆单元补偿逐出信息的丢失，在多种长上下文任务上优于启发式方法。",
+      "llm_tldr": "长上下文推理中KV缓存过大，现有逐出策略启发式且易遗忘。本文提出IndexMem，可学习索引器预测KV重要性以精准保留关键token，并引入潜记忆单元补偿逐出信息的丢失，在多种长上下文任务上优于启发式方法。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "KV cache compression techniques for reducing memory in large language model inference",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.25475v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.05933v1",
+      "source": "arxiv",
+      "title": "Beyond Greedy Chunking: SLO-Aware Sliding-Window Scheduling for LLM Inference",
+      "abstract": "With the rapid growth of interactive applications in large language model (LLM) online services, maintaining high system throughput while ensuring user-perceived latency has become a key issue in inference scheduling. Existing LLM service systems rely on coarse-grained output constraints, making it difficult to effectively handle resource contention among multiple requests, resulting in low resource utilization efficiency and limited support for fine-grained quality of service (QoS) differentiation. We present SlidingServe, a sliding-window-driven SLO-Aware scheduling system for online LLM inference. SlidingServe designed a lightweight batch latency predictor to estimate the execution time of a batch. Based on this, SlidingServe uses SlidingChunker to combine information from the current iteration and the next iteration to achieve dynamic chunking and improve the overall system throughput while maintaining strict QoS guarantees. SlidingServe introduces Multi-Level Priority Sorter to sort candidate requests in order to balance fairness and efficiency. Additionally, when multiple requests within the same batch are at risk of SLO violating,SlidingServe introduces BatchConstructor, which uses dynamic programming to select the set of requests to execute in the current round, mitigating the SLO violation risk of critical requests.Our evaluation demonstrates that SlidingServe can improve service capacity by up to 30% compared to advanced scheduling systems under various load conditions, and further reduces the rate of SLO violation by 16%-53% under heavy-load inference mode.",
+      "authors": [
+        "Yuansheng Chen",
+        "Yue Zhang",
+        "Xuan Mo",
+        "Weigang Wu",
+        "Jialun Li"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC"
+      ],
+      "published": "2026-06-04T09:36:40+00:00",
+      "link": "https://arxiv.org/pdf/2606.05933v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LLM inference scheduling for SLO-aware latency optimization",
+      "llm_evidence_cn": "面向服务等级协议的LLM推理调度加速",
+      "llm_evidence": "面向服务等级协议的LLM推理调度加速",
+      "canonical_evidence": "面向服务等级协议的LLM推理调度加速",
+      "llm_tldr_en": "Proposes SlidingServe, a sliding-window SLO-aware scheduler that uses a lightweight batch latency predictor to optimize throughput and latency in LLM inference serving.",
+      "llm_tldr_cn": "现有LLM服务系统依赖粗粒度输出约束，难以处理多请求资源竞争。本文提出SlidingServe，一种基于滑动窗口的SLO感知调度系统，通过轻量级批延迟预测器估计批执行时间，实现细粒度服务质量区分，提高资源利用率和系统吞吐量。实验表明该方法能有效平衡延迟和吞吐量。",
+      "llm_tldr": "现有LLM服务系统依赖粗粒度输出约束，难以处理多请求资源竞争。本文提出SlidingServe，一种基于滑动窗口的SLO感知调度系统，通过轻量级批延迟预测器估计批执行时间，实现细粒度服务质量区分，提高资源利用率和系统吞吐量。实验表明该方法能有效平衡延迟和吞吐量。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "large language model inference acceleration",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.06574v1",
+      "source": "arxiv",
+      "title": "Skip a Layer or Loop It? Learning Program-of-Layers in LLMs",
+      "abstract": "Large language models (LLMs) perform inference by following a fixed depth and order, non-recurrent execution of all layers. We reveal the wide existence of training-free, flexible, dynamic program-of-layers (PoLar), where pretrained layers can be packed as modules and then skipped or looped to form a customized program for each input. For most inputs, substantially shorter program executions can achieve the same or better accuracy, while incorrect predictions of the original LLM can be corrected by alternative programs with fewer layers. These observations indicate that inference admits multiple valid latent computations beyond the standard forward pass. To efficiently achieve PoLar in practice, we propose a lightweight PoLar prediction network, which learns to generate execution programs that dynamically skip or repeat pretrained layers for each input. Experiments on mathematical reasoning benchmarks demonstrate that PoLar consistently improves accuracy over standard inference and prior dynamic-depth methods, often while executing fewer layers, and that these gains persist under out-of-distribution evaluation. Our results suggest that fixed-depth execution captures only a narrow subset of an LLM's latent reasoning capacity.",
+      "authors": [
+        "Ziyue Li",
+        "Yang Li",
+        "Tianyi Zhou"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-06-04T17:59:58+00:00",
+      "link": "https://arxiv.org/pdf/2606.06574v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "dynamic layer skipping/looping for efficient LLM inference",
+      "llm_evidence_cn": "动态跳过或循环层实现高效LLM推理",
+      "llm_evidence": "动态跳过或循环层实现高效LLM推理",
+      "canonical_evidence": "动态跳过或循环层实现高效LLM推理",
+      "llm_tldr_en": "Reveals that pretrained LLM layers can be skipped or looped per input, and proposes a lightweight predictor to achieve dynamic program-of-layers for faster inference.",
+      "llm_tldr_cn": "大型语言模型推理固定执行所有层，存在冗余。本文发现预训练层可被跳过或循环，形成输入定制的程序。提出轻量级预测网络实现动态层程序，用更少层达到相同或更好精度，并纠正错误预测。",
+      "llm_tldr": "大型语言模型推理固定执行所有层，存在冗余。本文发现预训练层可被跳过或循环，形成输入定制的程序。提出轻量级预测网络实现动态层程序，用更少层达到相同或更好精度，并纠正错误预测。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "large language model inference acceleration",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2605.26558v1",
+      "source": "arxiv",
+      "title": "Cassandra: Enabling Reasoning LLMs at Edge via Self-Speculative Decoding",
+      "abstract": "Speculative decoding has emerged as a promising lossless approach for accelerating Large Language Models (LLMs). As reasoning LLMs increasingly suffer from decode-stage overhead and approximation-based methods degrade accuracy, lossless speculative decoding has become essential for efficient inference. However, existing methods still struggle to deliver strong low-batch performance without additional training, limiting practical deployment on consumer devices. To address this challenge, we propose Cassandra, an algorithm-hardware co-designed self-speculative decoding framework optimized for low-batch scenarios. Cassandra constructs a high-performance, training-free draft model through fine-grained data selection. Using optimized pruning and mantissa truncation, it identifies the most salient values in both model weights and the Key-Value (KV) cache, enabling rapid candidate token generation before full-precision parallel verification. Unlike prior self-speculative decoding methods based on layer skipping or structured KV compression, Cassandra achieves significantly higher efficiency. To further reduce the overhead of format conversion between Cassandra representations and standard floating-point formats, we also introduce a lightweight encoder-decoder hardware module designed for seamless integration with commercial GPUs and NPUs. Experimental results show that Cassandra achieves up to 2.41x speedup over the BF16 baseline without additional training. Furthermore, on Llama 3 8B running on an NVIDIA GeForce RTX 4090, Cassandra generates 1.81x more tokens under the same memory budget compared to Eagle-3, a state-of-the-art speculative decoding method.",
+      "authors": [
+        "Soongyu Choi",
+        "Yuntae Kim",
+        "Muyoung Son",
+        "Joo-Young Kim"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-05-26T05:12:44+00:00",
+      "link": "https://arxiv.org/pdf/2605.26558v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "self-speculative decoding for edge deployment",
+      "llm_evidence_cn": "面向边缘设备的自推测解码",
+      "llm_evidence": "面向边缘设备的自推测解码",
+      "canonical_evidence": "面向边缘设备的自推测解码",
+      "llm_tldr_en": "Cassandra co-designs algorithm and hardware for self-speculative decoding, creating a training-free draft model via data selection and pruning, enabling lossless acceleration on consumer devices.",
+      "llm_tldr_cn": "针对推理LLM在边缘设备上部署时解码开销大且现有推测解码方法在低批次场景下性能不佳的问题，Cassandra提出了算法-硬件协同设计的自推测解码框架。通过细粒度数据选择和优化剪枝构建免训练草稿模型，结合硬件优化，在消费级设备上实现了无损加速，改善了低批次推理效率。",
+      "llm_tldr": "针对推理LLM在边缘设备上部署时解码开销大且现有推测解码方法在低批次场景下性能不佳的问题，Cassandra提出了算法-硬件协同设计的自推测解码框架。通过细粒度数据选择和优化剪枝构建免训练草稿模型，结合硬件优化，在消费级设备上实现了无损加速，改善了低批次推理效率。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "eagle based speculative decoding for LLM inference acceleration",
+      "matched_requirement_id": "req-7",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.26558v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.07116v1",
+      "source": "arxiv",
+      "title": "OffQ: Taming Structured Outliers in LLM Quantization by Offsetting",
+      "abstract": "Low-bit quantization has been widely adopted to accelerate the inference of large language models (LLMs) by significantly reducing computational cost and memory usage. However, activation outliers pose a major challenge to effective quantization, often leading to notable performance degradation. In this paper, we introduce OffQ, a method designed to mitigate activation outliers in low-bit quantization through a novel offsetting mechanism. Specifically, OffQ first identifies a low-dimensional outlier subspace in the activations using a proposed top-1 PCA, and then concentrates high-magnitude activations into 1 channel via rotation. OffQ then absorbs this concentrated outlier channel by converting its magnitude into a shared offset, thereby reducing the standard deviation of the activations. This offsetting strategy enables effective W4A4KV4 quantization of LLMs using deployment-friendly uniform-grid and uniform-precision quantization. Extensive experiments across diverse LLM architectures and benchmarks demonstrate that OffQ outperforms state-of-the-art baselines, consistently improving model accuracy while preserving low-bit efficiency.",
+      "authors": [
+        "Haoqi Wang",
+        "Lorenz K. Mueller",
+        "Jiawei Zhuang",
+        "Mathieu Salzmann",
+        "Lukas Cavigelli"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-06-05T10:11:34+00:00",
+      "link": "https://arxiv.org/pdf/2606.07116v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "low-bit quantization to accelerate LLM inference",
+      "llm_evidence_cn": "低比特量化加速LLM推理",
+      "llm_evidence": "低比特量化加速LLM推理",
+      "canonical_evidence": "低比特量化加速LLM推理",
+      "llm_tldr_en": "OffQ introduces an offsetting mechanism to handle activation outliers in low-bit LLM quantization, reducing quantization error and enabling faster inference on Llama and Qwen models.",
+      "llm_tldr_cn": "该论文针对低比特量化中激活值离群点导致性能下降的问题，提出OffQ方法。通过top-1 PCA识别低维离群子空间，用旋转集中高幅值激活到单通道，再转化为共享偏移量吸收。实验在多个LLM上验证，OffQ有效降低量化误差，支持更低比特推理加速，为LLM部署提供了鲁棒的量化方案。",
+      "llm_tldr": "该论文针对低比特量化中激活值离群点导致性能下降的问题，提出OffQ方法。通过top-1 PCA识别低维离群子空间，用旋转集中高幅值激活到单通道，再转化为共享偏移量吸收。实验在多个LLM上验证，OffQ有效降低量化误差，支持更低比特推理加速，为LLM部署提供了鲁棒的量化方案。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "large language model inference acceleration",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
