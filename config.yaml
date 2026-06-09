@@ -25,5 +25,80 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
-  intent_profiles: []
-source_backends: {}
+  intent_profiles:
+    - tag: inf-accel
+      description: >-
+        请帮我查找大模型推理加速的论文，包括prefilling优化方面，针对流行的FlashAttention和PagedAttention和LMDeploy等优缺点进行了详细讲解。decoding优化方面，主要有多token预测、降低kv
+        cache等方法。
+      enabled: true
+      paper_sources:
+        - arxiv
+        - biorxiv
+      keywords:
+        - keyword: eagle
+          keyword_cn: eagle推理加速
+          query: e
+        - keyword: large language model inference acceleration
+          keyword_cn: 大语言模型推理加速
+          query: large language model inference acceleration
+        - keyword: prefilling optimization
+          keyword_cn: 预填充优化
+          query: optimization of prefilling stage in large language model inference
+        - keyword: multi-token prediction
+          keyword_cn: 多token预测
+          query: multi-token prediction for accelerating decoding in large language models
+        - keyword: KV cache compression
+          keyword_cn: KV缓存压缩
+          query: KV cache compression techniques for reducing memory in large language model inference
+        - keyword: decoding optimization
+          keyword_cn: 解码优化
+          query: optimization of decoding stage in large language model inference
+      intent_queries:
+        - query: eagle based speculative decoding for LLM inference acceleration
+          query_cn: 基于Eagle的推测解码在LLM推理加速中的应用
+          enabled: true
+          source: manual
+          note: ''
+        - query: advanced techniques for prefilling optimization in large language model inference
+          query_cn: 大语言模型推理中预填充优化的高级技术
+          enabled: true
+          source: manual
+          note: ''
+        - query: recent progress in FlashAttention and PagedAttention for LLM speedup
+          query_cn: FlashAttention和PagedAttention在LLM加速方面的最新进展
+          enabled: true
+          source: manual
+          note: ''
+        - query: multi token prediction and KV cache reduction methods for fast LLM decoding
+          query_cn: 用于快速LLM解码的多token预测和KV缓存缩减方法
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-06-09T15:15:41.189Z'
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
+  biorxiv:
+    papers_table: biorxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_biorxiv_papers_exact
+    vector_rpc_exact: match_biorxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_biorxiv_papers_bm25
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
