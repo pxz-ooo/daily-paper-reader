@@ -1,0 +1,296 @@
+Title: Block-Based Double Decoders
+
+URL Source: https://arxiv.org/pdf/2605.18807v1
+
+Published Time: Wed, 20 May 2026 00:02:07 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+# Block-Based Double Decoders 
+
+Vanessa Alexander ∗
+
+vanessa_alexander@brown.edu 
+
+Benjamin Bradley 
+
+benjamin_bradley@brown.edu 
+
+Chaitanya Harsha 
+
+chaitanya_harsha@brown.edu 
+
+Asher Labovich 
+
+asher_labovich@brown.edu 
+
+Department of Computer Science Brown University Providence, RI 02912 
+
+# Abstract 
+
+Encoder-decoder models offer substantial inference-time savings over decoder-only models, but their pretraining objectives suffer from sparse supervision and dynamic sequence lengths, keeping them out of practice at scale. We propose block-based double decoders , a novel transformer architecture that utilizes doubly-causal block-based attention masks to train with full loss supervision and static sequence packing, combining decoder-only training efficiency with encoder-decoder infer-ence efficiency. In scaling law experiments, block-based double decoders strongly outperform encoder-decoders and closely track decoder-only models across scales. At inference time, they cut KV-cache memory and per-token compute by at least  
+
+> 23
+
+without sacrificing prefill caching or other existing inference optimizations available to decoder-only models. 
+
+# 1 Introduction 
+
+In recent years, the rise of the transformer [ 1 ] has led to advances in natural language modeling. Although the original transformer employed an encoder-decoder based architecture, with full attention for understanding in the encoder and causal attention for prediction in the decoder, decoder-only architectures have gained prominence for their scalability in text-generation settings [ 2]. Recently, however, there has been renewed attention in encoder-decoder architectures [ 3] for their gains in efficiency and their effectiveness in compute- and storage-constrained environments, as they achieve substantial reductions in KV-caching. Even with this work, it has been shown [4] that the architectural boundary between the encoder and decoder leads to inefficiencies, and that a 2P parameter encoder-decoder model incurs the same computational cost as a P parameter decoder-only architecture. An alternative single-transformer approach, PrefixLM, in which full attention is used for a prefix of the inputs, and causal attention after this, attempts to combine the bidirectional context of encoder-decoders with the sharing of parameters in decoder-only models. This method benefits from less dynamic batching, but leaves many tokens untrained on. But PrefixLM is outperformed by an encoder-decoder trained with span corruption, where the model is trained to predict a proportion of “corrupted” tokens. Although this achieves superior performance, it requires highly dynamic batching, and still leaves many tokens untrained on, as [ 4] found that a mere 15% corruption results in the best performance. 
+
+> ∗All authors contributed equally. Author names are listed alphabetically by last name. Preprint.
+> arXiv:2605.18807v1 [cs.LG] 11 May 2026
+
+Figure 1: Graph comparing loss versus tokens for different size decoder, double decoder, and encoder-decoder models We propose a novel attention mask for pre-training 2, which we call doubly-causal block-based masking . Our proposed architecture consists of two decoders. The first sees a standard causal mask and takes in the standard input. The second decoder conducts cross-attention on the output of the first decoder, but also on the input, masked with our approach. We split the input into “blocks,” with full self-attention within each block, and causal cross-attention between blocks. In this way, we receive loss signal from every token in the input, and we achieve constant token length. 
+
+# 2 Prior Work 
+
+The original Transformer architecture [ 1] consists of a bidirectional self-attention encoder paired with a causal decoder for autoregressive generation. The encoder processes the full input sequence to produce contextualized representations for each token. In contrast, the decoder applies masked (causal) self-attention and additionally incorporates cross-attention, allowing each decoding position to attend to all of the encoded input representations. However, in recent years, it has been found that for generative modeling, decoder-only models are more scalable and achieve superior performance [ 2, 5]. Meanwhile, encoder-only architectures [ 6], trained using token masking, are performant when fine-tuned on downstream classification-type tasks. However, [ 4 ] demonstrated that any classification task can fundamentally be described as a text-to-text problem, putting it in reach of generative models. Their findings included a thorough search of several architectures and pre-training objectives, including decoder-only with the standard LM objective, decoder-only with the PrefixLM objective, and encoder-decoder with span corruption, among others. They found that across all the downstream tasks these models were tasked with, including question answering, summarizing, and translation, encoder-decoder with span corruption performed the best across a range of prediction tasks. In span corruption, contiguous spans of tokens are "corrupted" or replaced with sentinel tokens that are assigned a unique ID specific to that sentence. The target sequence consists of the concatenated missing spans, and the model is then trained to autoregressively generate those missing spans. Typically, only a fraction of the tokens (about 15%) are corrupted with major performance degradation occurring at 50% corruption. Empirically, this architecture combined with span corruption has been shown to outperform both decoder-only language models (LM) and prefix variants under comparable training settings. Addition-ally, span corruption as a pretraining objective has been shown to empirically outperform standard LM pretraining objectives under comparable training settings within the same model architectures. We note that, despite its high performance, that there are several issues with span corruption as a pre-training objective. First, [ 4] studied what rate of span corruption would be most performant, and 
+
+> 2Code found at https://github.com/ashlab11/block-based-double-decoder
+
+2BOS  
+
+> BOS
+> A
+> A
+> B
+> B
+> C
+> C
+> D
+> D
+> E
+> E
+> F
+> F
+> keys →
+> queries  →
+> self-attention
+> cross-attention
+
+Figure 2: Visual explanation of the decoder attention mask for an example sentence. Splitting up into three parts, we see that the decoder sees three context-response pairs in parallel: 
+
+(1): empty context, [BOS, A] response 
+
+(2): [BOS, A] context, [B, C, D] response 
+
+(3): [BOS, A, B, C, D] context, [E, F] response Each token thus appears in the loss exactly once per forward pass. confirmed [ 6 ]’s findings that 15% span corruption led to optimal training. However, this means that only these 15% of tokens yield a loss signal, so most tokens are not being trained on. This creates a fundamental tradeoff between increasing prediction difficulty to enhance long-range reasoning and maximizing supervision density relative to the total computational cost. Additionally, span corruption requires dynamic batching, as for a given batch, the number of tokens predicted will not be constant across all training examples. This requires token padding, a waste of compute and memory. We hypothesize that an alternate pre-training objective can perform as well as span corruption, but without these inefficiencies. Additionally, prior work such as [ 7 ] demonstrated that attention patterns that capture both local dependencies and global information can achieve strong performance at reduced computational cost. Although we strive for train-time efficiency over O(n) attention, we take inspiration from this notion with an architecture that captures both local and global interdependencies. 
+
+# 3 Architecture Comparison 
+
+3.1 Block-based double decoders 
+
+In this paper, we wish to create an architecture for next-token prediction that retains the benefits of encoder-decoder architectures – in particular, substantial KV-cache reductions and ease of use on edge device – without sacrificing the training efficiency of decoder-only transformers. We consider two criteria when creating such an architecture. First, loss-information density: every token in a packed training example should contribute a loss signal in every forward pass. Second, sequence length statis: post-packing sequence length should not change across training batches, so that throughput is predictable and maximally efficient. To motivate our architecture, we first consider a basic PrefixLM encoder-decoder training objective, which fails both criteria. To train one, we must randomly choose split-points at each batch, placing 
+
+N % in the encoder and (100 − N )% in the decoder. Only the decoder portion contributes to the loss, so loss-information density is (100 − N )% , and token counts fluctuate by batch depending on N. This results in both dynamic length batching (since N changes by batch) and lower loss information 3per token, which combined substantially harms training efficiency. We solve both of these problems via our proposed architecture, block-based double decoders. Concretely, a block-based double decoder consists of two stacks. The first, which we call the context decoder , is a standard causal decoder-only transformer; it takes in the full input and outputs causal latents ht for each token. The second, the generation decoder , takes in three inputs: (1) the causal latents from the context decoder, (2) the token sequence itself, and (3) a block partition : a strictly increasing sequence of indices 0 = b0 < b 1 < . . . < b K = T that splits the sequence into K contiguous subsequences. For the length-7 sequence in Figure 2, the partition (0, 2, 5, 7) creates blocks [BOS, A], [B, C, D], [E, F]. Within the generation decoder, each query at position t in block k attends to two subsequences: the within-block keys , comprising the tokens of block k at positions ≤ t (i.e. causal self-attention), and cross-block keys , comprising the context-decoder latents hs for all s in blocks m < k (full cross-attention). The mask in Figure 2 is the union of these two attention mechanisms. There exists a subtletly in how these two operations are combined. Treating these as two separate attention mechanisms and residually adding the outputs, as is common in normal encoder-decoders, introduces three problems. First, the order in which the two operations are applied becomes architec-turally significant despite being completely arbitrary. Second, certain query rows have no keys under the cross-attention mask (e.g. [BOS, A] in Figure 2), leaving the corresponding softmax undefined. Third, the attention-sink behavior of standard attention is lost: with two separate softmaxes, the operation is forced to allocate equal probability mass to each of the two subsequences, even when only one is important for predicting the next token. These three problems can all be solved at once by conducting just one attention with two different key matrices depending on the (query, key) index pair. However, since to our knowledge there currently exists no fast attention implementation that allows this dual-key mechanism, we instead compute the attentions separately and combine their log-sum-exp normalizes post-hoc. This is mathematically equivalent to conducting the singular attention operation, but allows for fast implementation via PyTorch’s FlexAttention function. We note that this is substantially less efficient from a computational perspective than the “ideal” method, which would directly utilize the sparsity induced by the chosen blocks to minimize total multiplications across the dual SDPA applications, cutting off all additional compute beyond the calculation of an additional KV matrix. We leave the creation of this ideal method to future work. This architecture achieves both of the criteria mentioned earlier. Every token appears in the loss exactly once per forward pass, regardless of the number of blocks chosen (though, a small first block has an empty context-decoder, and thus must conduct all reasoning in the generation-decoder). In addition, the only dynamic component is the block list, which changes each batch; however, it affects only the attention mask of the generation-decoder, which can be handled with minimal latency by PyTorch’s FlexAttention. And, the existence of a context-decoder retains the benefits of normal encoder-decoder architectures: at inference-time, the context-decoder runs once over the prompt, thus requiring no KV-cache and achieving substantial speed-ups. Each of the three architectures mentioned in this paper – decoder-only, encoder-decoder, and double-decoder – have substantially different compute requirements during both training and inference, even when parameter and token-matched. The following sections describe these differences in detail. 
+
+3.2 Training Time Comparisons 
+
+Although our primary focus is on the large inference-latency differences between decoder-only, encoder-decoder, and double decoder models, the three architectures also differ in training compute, and the standard 6N T heuristic obscures these differences. In Appendix A.2, we derive architecture-aware FLOP formulas: double decoders incur additional compute from their extra KV projections, while encoder-decoders save compute by feeding fewer tokens through the decoder under span corruption. Specifically, for a decoder-only model with sequence length T , hidden dimension d, and 
+
+L layers, the approximate train-time FLOP count is 
+
+L(72 T d 2 + 12 T 2d).
+
+For an encoder-decoder trained with span corruption, with padded encoder input sequence length Tin 
+
+and decoder sequence length Tout , this is 
+
+L((52 Tin + 28 Tout )d2 + (4 T 2 
+
+> out
+
++ 4 Tin Tout + 8 T 2
+
+> in
+
+)d).
+
+4and for an efficient implementation of the double decoder, 
+
+L(76 T d 2 + 12 T 2d).
+
+Although double decoder models require more training compute than decoder-only models, the difference is small when implemented efficiently: at T = Tin = 2048 and Tout = 256 , double decoder uses only 2.4% more FLOPs than decoder-only (while encoder-decoder uses 21% fewer 
+
+FLOPs). Combining these formulas with our empirical scaling laws lets us compare the compute required by each architecture to reach matched perplexity on held-out test sets. 
+
+3.3 Inference Time Comparison 
+
+As mentioned in Section 3.2, double decoders tend to slightly underperform decoder-only models in training compute due to their additional KV matrices in every transformer block. However, this disadvantage is strongly outweighed by their numerous benefits during inference, which we detail below. All benefits arise directly from the natural separation of context and response in both training and inference, and one such benefit is unavailable for classic encoder-decoder models due to their bidirectional nature. 1. Since the generation decoder need only refer to the final output of the context decoder, there is no need to save the activations from the context decoder. This saves both time and memory; [ 3] found 4.7x higher throughput at low context lengths, and [ 8] noted these throughput gaps only increase as context length grows. In addition, the KV-cache required during generation scales only with the size of the generation decoder, rather than the full model. As detailed in Appendix A.1, this results in a 23 KV-cache memory reduction in comparison to decoder-only models under our architectural design, with the benefit growing as the ratio of context-decoder to generation-decoder layers grows. Furthermore, these benefits carry over to per-token latency; as generation depends only on the size of the generation-decoder after the context-decoder representation is completed, the latency cost per-token scales equivalently to that of the memory boost. These advantages open up a connection to test-time compute scaling: if it is possible to inflate the compute spent on 
+
+only the context-decoder (i.e. without adding more tokens or increasing compute in the generation-decoder) at test-time, then TTFT increases while per-token latency and memory requirements remain the same. Recently, works on looped transformers [ 9, 10 , 11 , 12 ] have found that looping layers at test-time can improve performance and generalization capacity; doing so just for the context decoder in our work may effectively marry the positive effects on reasoning with the low memory-and-compute costs of dual-stack models. 2. In scenarios where memory is particularly scarce, models with two separate stacks (including both regular encoder-decoders and our block-based double decoder) can “swap” between CPU and GPU when needed. A model split 2/3 encoder and 1/3 decoder can save 1/3 parameter memory while applying the context decoder, before swapping the placement of each stack when generation is needed. 3. In cases where model providers expect many prompts to share a common prefix (e.g. a long shared system prompt) they often prefill the KV-cache for that prefix once and reuse it across requests, dramatically reducing TTFT. While immensely useful in decoder-only models – especially given that system prompts are typically long and thus the dominant contributor to TTFT without prefill – this form of caching is fundamentally incompatible with encoder-decoder models: the bidirectional encoder makes every token’s representation depend on the full input, so a cached prefix cannot be reused once the suffix changes. Our double decoder directly resolves this, as its doubly-causal nature allows immediate transfer of prefix-level KV caching from decoder-only inference stacks. 4. The architectural separation in our model also reduces latency. Time-to-first-token (TTFT) depends only on the depth of the context decoder, yielding a reduction proportional to  
+
+> Lenc
+> L
+
+which corresponds to a 13 reduction in TTFT latency under the same split. Notably, the benefits of prefill (as used in [ 13 ] and other inference packages) transfer immediately over to our model in a way they do not to traditional encoder-decoder models due to the bidirectional nature. Given that many recent latency improvements come from improving prefill caching, this is an immediate shift with essentially zero fundamental inference code changes. In addition to lower TTFT, our model also substantially reduces the latency of 5each token generated. Per-token generation cost depends only on the depth of the generation decoder, as each new token is processed autoregressively through this stack. As a result, the latency cost per-token scales proportionally to Ldec  
+
+> L
+
+, yielding a corresponding reduction under the same 2/3 1/3 split. 
+
+# 4 Experimental Setup 
+
+Models and scaling grid. We compare three architectures – decoder-only, standard encoder-decoder (SED), and our proposed double decoder – all under a shared tokenizer, sequence length 2048, and tied input/output embeddings, with parameter counts approximately matched across families. The main sweep is a three-way grid over architecture, model size, and token budget, spanning 6.25M-100M parameters and 62.5M-1B tokens in multiples of 2. We vary hidden dimension across the grid with num heads = d 
+
+> 64
+
+so head dimension stays at 64, holding the depth profile at 8 encoder / 4 decoder layers (or 12 decoder layers for decoder-only models) for most configurations. The smallest models use 10/5 instead, because the multiple-of-64 width constraint leaves too little resolution to hit small parameter targets by width alone. SED’s decoder carries an extra cross-attention sublayer per block, so we reduce its decoder layer count to match non-embedding parameters at fixed width. We provide a detailed description of the hyperparameters constant to all models in Table 1. We train all models on 10xH100 NVIDIA GPUs, with a total of 200 GPU-hours for given results. All experiments were conducted with PyTorch [14]. As described in Section 3.2, we report architecture-aware FLOP counts rather than the common 6N T 
+
+heuristic used for decoder-only models. 
+
+μP and width transfer. We adopt a width-scaling protocol inspired by maximal update parameteri-zation [ 15 ] with base width d0 = 64 . Hidden-matrix learning rates are scaled by d0 
+
+> d
+
+, embeddings and the tied output projection use the architecture-specific base learning rate, and norms and biases skip weight decay. After the tied output projection, logits are multiplied by 
+
+q d0 
+
+> d
+
+. Base learning rates are tuned on a 0.5M model for all three architectures (0.01 for decoder-only and double decoder, 0.004 for encoder-decoder) and confirmed to scale to models 16x at large. After confirming the ideal learning rate, we conducted a sweep of weight decay along the 0.5M param model, and found 0.5 best for double decoder and encoder decoder with 0.1 best for decoder-only. Appendix A.3 provides a visual description of these sweeps. 
+
+Pretraining data and objectives. All models pretrain on packed SlimPajama [ 16 ] with architecture-native objectives: double decoder uses our doubly-causal block-based masking method, SED uses T5-style span corruption with sentinels, and decoder-only uses causal next-token prediction. Because these losses correspond to different prediction problems, we do not compare raw pretraining losses across families. Instead, we add a post-hoc prefix-LM fine-tuning phase (10% of training data) on held-out SlimPajama with a base learning rate of 0.0002 before applying μP. The collator samples a breakpoint at each batch and trains the model to predict suffix tokens condi-tioned on prefix tokens. For double decoder and SED, the prefix is routed through the encoder; for decoder-only, the prefix merely does not provide additional loss information. This equalizes the loss objective and data and allows for stronger cross-architecture comparisons. 
+
+# 5 Results 
+
+Across the entire (N, D) grid, our block-based double decoder substantially outperforms the encoder-decoder baseline and tracks decoder-only closely (Figures 1, 4, 5). At the largest configuration we evaluated (100M params, 1B tokens), the double decoder reaches an evaluation loss ∼ 0.2
+
+nats worse than the parameter and token-matched decoder-only model, while the encoder-decoder trails both architectures by ∼ 0.7 nats. This relative ordering – decoder-only ≲ double decoder ≪
+
+encoder-decoder – holds across every model size and token budget in the sweep. The most informative difference is visible along the compute axis in Figure 4. For both decoder-only and double decoder, individual size-curves cross over, tracing out the Pareto envelope characteristic of well-known scaling laws [ 17 ]. Yet, across the entire FLOP range tested, larger encoder-decoder 6Figure 3: Table showcasing CE loss after training for each parameter/token combination. 
+
+Figure 4: Graph of loss vs FLOPs curve for each size model models are essentially uniformly worse than smaller ones at every fixed compute level, and the curves remain nearly parallel on the log axis. We interpret this as direct evidence that all tested encoder-decoder configurations sit in the same scaling regime – specifically, the data-limited regime, where additional parameters cannot be utilized within the token budgets explored. Figure 1 provides additional evidence for this claim: while the decoder-only and double decoder curves flatten visibly past ∼ 50 M tokens as smaller models hit their capacity floors, the encoder-decoder curves continue descending steeply at every model size with no sign of flattening. This finding directly motivates and justifies block-based double decoders. As argued earlier, span corruption only receives loss information from ∼ 15% of tokens during the forward pass, so the encoder-decoder receives a sparse signal and cannot fill its capacity within the token budgets we test. By restoring full token loss information via block-based double decoders, we immediately see substantial gaps across the entire compute grid. The ∼ 0.2 nat gap between the decoder-only model and the double decoder model is what we believe to be the cost of the architectural separation of context and response. Section 3.3 details the inference-time benefits this separation enables, which we view as more than compensating for the modest training-time loss gap. 7Figure 5: Graph of loss vs FLOPs curve for models by token training count 
+
+# 6 Limitations and Future Work 
+
+While our method achieves strong results, we note several limitations. First, attention blocks are sampled randomly per batch, which may increase variability and unpredictability of loss dynamics. Second, due to compute constraints we were limited to relatively small-scale models, and our scaling-law extrapolations may not hold at several orders of magnitude beyond the regime we directly consider. Training a select few larger models would substantially strengthen evidence for extrapolation at much larger scales. Beyond the inference time savings mentioned here, the double decoder architecture opens several promising research directions. Latent chain-of-thought methods such as COCONUT [ 18 ] find benefits in inserting continuous reasoning tokens between context and response, but the absence of a native context-response boundary in decoder-only architectures has confined these techniques to post-training. Our architecture exposes this separation throughout the entire training process, theoretically opening the door for latent reasoning to be applied during pretraining. As discussed in Section 3.3, looped transformers [ 9, 10 ] also naturally synergize with the context decoder, possibly combining test-time reasoning gains with low-latency inference. We leave direct testing of these possibilities to future work. 
+
+# 7 Broader Impacts 
+
+Improved efficiency of transformer models through our proposed block-based double decoder archi-tecture and doubly-causal block-based masking method may provide positive societal impacts by reducing the computational cost and memory usage during inference at small additional costs during training. These efficiency gains can improve the accessibility of large-scale language models to researchers with limited computational resources. Notably, our proposed method does not introduce new capabilities or fundamentally alter model behavior, and therefore these societal risks are generally inherited from existing LMs. 
+
+# 8 Division of Labor 
+
+All authors contributed equally. Asher and Ben focused primarily on coding and running models, while Vanessa and Chai focused on research and writing. 8References 
+
+[1] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In Proceedings of the 31st International Conference on Neural Information Processing Systems , NIPS’17, page 6000–6010, Red Hook, NY, USA, 2017. Curran Associates Inc. ISBN 9781510860964. [2] Alec Radford, Karthik Narasimhan, Tim Salimans, and Ilya Sutskever. Improv-ing language understanding by generative pre-training. Technical report, OpenAI, 2018. URL https://cdn.openai.com/research-covers/language-unsupervised/ language_understanding_paper.pdf .[3] Mohamed Elfeki, Rui Liu, and Chad Voegele. Return of the encoder: Maximizing parameter efficiency for slms, 2025. URL https://arxiv.org/abs/2501.16273 .[4] Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter J. Liu. Exploring the limits of transfer learning with a unified text-to-text transformer, 2023. URL https://arxiv.org/abs/1910.10683 .[5] Tom B. Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, Sandhini Agarwal, Ariel Herbert-Voss, Gretchen Krueger, Tom Henighan, Rewon Child, Aditya Ramesh, Daniel M. Ziegler, Jeffrey Wu, Clemens Winter, Christopher Hesse, Mark Chen, Eric Sigler, Mateusz Litwin, Scott Gray, Benjamin Chess, Jack Clark, Christopher Berner, Sam McCandlish, Alec Radford, Ilya Sutskever, and Dario Amodei. Language models are few-shot learners, 2020. URL https://arxiv.org/abs/2005.14165 .[6] Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. Bert: Pre-training of deep bidirectional transformers for language understanding, 2019. URL https://arxiv.org/ abs/1810.04805 .[7] Manzil Zaheer, Guru Guruganesh, Avinava Dubey, Joshua Ainslie, Chris Alberti, Santiago Ontanon, Philip Pham, Anirudh Ravula, Qifan Wang, Li Yang, and Amr Ahmed. Big bird: Transformers for longer sequences, 2021. URL https://arxiv.org/abs/2007.14062 .[8] Yutao Sun, Li Dong, Yi Zhu, Shaohan Huang, Wenhui Wang, Shuming Ma, Quanlu Zhang, Jianyong Wang, and Furu Wei. You only cache once: Decoder-decoder architectures for language models, 2024. URL https://arxiv.org/abs/2405.05254 .[9] Asher Labovich. Stability and generalization in looped transformers, 2026. URL https: //arxiv.org/abs/2604.15259 .[10] Hayden Prairie, Zachary Novack, Taylor Berg-Kirkpatrick, and Daniel Y. Fu. Parcae: Scaling laws for stable looped language models, 2026. URL https://arxiv.org/abs/2604.12946 .[11] Jonas Geiping, Sean McLeish, Neel Jain, John Kirchenbauer, Siddharth Singh, Brian R. Bartoldson, Bhavya Kailkhura, Abhinav Bhatele, and Tom Goldstein. Scaling up test-time compute with latent reasoning: A recurrent depth approach, 2025. URL https: //arxiv.org/abs/2502.05171 .[12] Nikunj Saunshi, Nishanth Dikkala, Zhiyuan Li, Sanjiv Kumar, and Sashank J. Reddi. Reasoning with latent thoughts: On the power of looped transformers, 2025. URL https://arxiv.org/ abs/2502.17416 .[13] Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph E. Gonzalez, Hao Zhang, and Ion Stoica. Efficient memory management for large lan-guage model serving with pagedattention. In Proceedings of the ACM SIGOPS 29th Symposium on Operating Systems Principles , 2023. [14] Adam Paszke, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory Chanan, Trevor Killeen, Zeming Lin, Natalia Gimelshein, Luca Antiga, Alban Desmaison, Andreas Köpf, Edward Z. Yang, Zach DeVito, Martin Raison, Alykhan Tejani, Sasank Chilamkurthy, Benoit Steiner, Lu Fang, Junjie Bai, and Soumith Chintala. Pytorch: An imperative style, high-performance deep learning library. CoRR , abs/1912.01703, 2019. URL http://arxiv. org/abs/1912.01703 .9[15] Greg Yang, Edward J. Hu, Igor Babuschkin, Szymon Sidor, Xiaodong Liu, David Farhi, Nick Ryder, Jakub Pachocki, Weizhu Chen, and Jianfeng Gao. Tensor programs v: Tuning large neural networks via zero-shot hyperparameter transfer, 2022. URL https://arxiv.org/ abs/2203.03466 .[16] Daria Soboleva, Faisal Al-Khateeb, Robert Myers, Jacob R Steeves, Joel Hestness, and Nolan Dey. SlimPajama: A 627B token cleaned and deduplicated version of RedPajama. https://cerebras.ai/blog/ slimpajama-a-627b-token-cleaned-and-deduplicated-version-of-redpajama ,2023. URL https://huggingface.co/datasets/cerebras/SlimPajama-627B .[17] Jordan Hoffmann, Sebastian Borgeaud, Arthur Mensch, Elena Buchatskaya, Trevor Cai, Eliza Rutherford, Diego de Las Casas, Lisa Anne Hendricks, Johannes Welbl, Aidan Clark, Tom Hennigan, Eric Noland, Katie Millican, George van den Driessche, Bogdan Damoc, Aurelia Guy, Simon Osindero, Karen Simonyan, Erich Elsen, Jack W. Rae, Oriol Vinyals, and Laurent Sifre. Training compute-optimal large language models, 2022. URL https://arxiv.org/ abs/2203.15556 .[18] Shibo Hao, Sainbayar Sukhbaatar, DiJia Su, Xian Li, Zhiting Hu, Jason Weston, and Yuandong Tian. Training large language models to reason in a continuous latent space. arXiv preprint arXiv:2412.06769 , 2024. 10 A Additional Calculations and Results 
+
+A.1 KV-cache calculations at inference time 
+
+Here, we calculate the difference between a decoder-only and dual-stack (encoder-decoder, or double-decoder) model in terms of key architectural parameters. We define the following variables: • d : hidden state size • Lenc : layers in encoder / context-decoder • Ldec : layers in decoder (as part of encoder-decoder) / generation-decoder • L: layers in decoder-only model • Tin : number of tokens in context • Tout : number of tokens in output • b: bytes per activation (e.g. 2 in fp16) We assume MHA for attention and KV-caching for simplicity. For a decoder-only model, calculating the memory of the KV-cache is simple: every token has both a key and value representation for every block. Thus, memory requirement can be calculated as 
+
+2dbL (Tin + Tout )
+
+For dual-stack models, calculating is more complicated. For self-attention, each token in Tout 
+
+attends only to prior tokens in Tout across all decoder-layers, giving a cache of 2dbL dec Tout . For cross-attention, each layer has a key and value representation of the final encoder state; thus, the cache is 2dbL dec Tin . Combined, this results in a cache of 
+
+2dbL dec (Tin + Tout )
+
+As the only difference at inference-time between double decoders and encoder-decoders is the use of log-sum-exp rather than summing the attention blocks together, both possess the same memory advantages. In particular, the memory cost in KV-cache relative to a decoder-only model can be represented simply as 
+
+Ldec 
+
+L
+
+Since our models utilize a 2/3 1/3 dual-stack split, this results in a 23 KV-cache memory reduction. 
+
+A.2 FLOP heuristic calculations 
+
+With variables as defined in the last section, we work through a single head in a single layer of self attention. In a decoder only, there are 4 linear matrix multiplications, so 8T d 2, two matrix multiplications for SDPA, 4T 2d, and the two FF layers contribute 16 T d 2. Together, this is 
+
+24 T d 2 + 4 T 2d. 
+
+We multiply by L for the number of layers, and since we are studying FLOPs at train time, we multiply by 3, for the forward pass, and then both backwards passes (for weights and for activations). Hence 
+
+L(72 T d 2 + 12 T 2d).
+
+The formula for encoder-decoder is calculated in a similar way. Since our models utilize a 2/3 1 /3
+
+split, we multiply by 2L 
+
+> 3
+
+for the encoder and L 
+
+> 3
+
+for the decoder. The FLOP count for a single encoder layer is identical to that of a single decoder, so 
+
+3 · 23 L(24 Tin d2 + 4 T 2
+
+> in
+
+d) = L(48 Tin d2 + 8 T 2
+
+> in
+
+d).
+
+For the decoder, the dual cross-attention on the encoder’s output and self-attention on the smaller token size complicates the calculation somewhat, but we find 
+
+L(28 Tout d2 + 4 T 2
+
+> out
+
+d + 4 Tin Tout d + 4 Tin d).
+
+11 Summing these two yields 
+
+L((52 Tin + 28 Tout )d2 + (4 T 2 
+
+> out
+
++ 4 Tin Tout + 8 T 2
+
+> in
+
+)d).
+
+Finally, for the double decoder architecture, the context-decoder is a standard causal decoder, so the FLOP count is once again 
+
+L(48 T d 2 + 8 T 2d).
+
+The generation-decoder has six linear matrix multiplications and 2 SDPA modules, at least in our naive implementation. However, a theoretically optimal matrix multiplication algorithm would bring the computation down to the equivalent of 1 SDPA, because both decoders have a causal mask, so the necessary multiplications of query, key, and value matrices are equivalent to an unmasked attention head. Hence, the linear matmuls yield 12 T d 2, the SDPA yields 4T 2d, and the two FF layers add 
+
+16 T d 2. Hence, the generation-decoder uses 
+
+L(28 T d 2 + 4 T 2d),
+
+altogether 
+
+L(76 T d 2 + 12 T 2d).
+
+A.3 μP hyperparameter sweeps 
+
+The following graphs showcase our findings for sweeps on learning rate and weight decay using μP. 
+
+Figure 6: Graphs showcasing the results of mu P learning rate transfer. Left graphs find the best learning rate at the smallest model (0.5M). Middle graphs compare that learning rate with others for larger models. Right graphs confirm that the best learning rate remains constant across scales. 
+
+A.4 Common hyperparameter table 
+
+12 Figure 7: Graphs showcasing the result of weight decay sweeps after finding the ideal learning rate. 
+
+Category Hyperparameter Value 
+
+Data Sequence length 2048 tokens Data Tokenizer 32k BPE tokenizer Initialization Weight initialization Xavier uniform Architecture Input/output embeddings Tied Architecture Attention head dimension 64 Architecture Positional encoding Rotary positional embeddings Optimization Optimizer AdamW Optimization AdamW betas (0 .9, 0.95) 
+
+Optimization AdamW epsilon 10 −8
+
+Optimization LR schedule Linear warmup for 5% of steps, then linear decay Optimization Final LR fraction 0.1 of peak LR Optimization Gradient clipping Global norm clipped to 1.0 
+
+μP Base width 64 
+
+μP Hidden-weight LR rule ηhidden = ηbase · 64 /d μP Embedding/output/norm LR ηbase 
+
+Pretraining Base LR source Per-architecture tuned LR, unless overridden Pretraining Weight decay source Per-architecture tuned WD, unless overridden PrefixLM SFT Base LR 2 × 10 −4
+
+PrefixLM SFT Hidden-weight LR 2 × 10 −4 · 64 /d 
+
+PrefixLM SFT SFT token budget 10% of pretraining tokens by default PrefixLM SFT Effective batch size 32 sequences 
+
+Table 1: Hyperparameters shared across model families. Here d denotes model width. Architecture size, layer allocation, pretraining objective, and collator differ by model family and are therefore omitted. 13

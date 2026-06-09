@@ -1,0 +1,406 @@
+Title: KVCapsule: Efficient Sequential KV Cache Compression for Vision-Language Models with Asymmetric Redundancy
+
+URL Source: https://arxiv.org/pdf/2605.16439v1
+
+Published Time: Tue, 19 May 2026 00:09:26 GMT
+
+Number of Pages: 18
+
+Markdown Content:
+# KVCapsule: Efficient Sequential KV Cache Compression for Vision-Language Models with Asymmetric Redundancy 
+
+Yingbing Huang 1 Tharun Adithya Srikrishnan 2 Steven K. Reinhardt 2 Deming Chen 11 University of Illinois Urbana-Champaign 2 AMD 
+
+## Abstract 
+
+Vision–Language Models (VLMs) have emerged as a critical and fast-growing extension of Large Language Models (LLMs) that enable multimodal reasoning through both text and image inputs. Although VLMs enrich the capabilities of language models, they also inherit and amplify key computational bottlenecks: the memory overhead caused by the large key–value (KV) cache during autore-gressive decoding. This challenge is particularly severe in VLMs, where images produce longer token sequences and denser feature representations compared to text. Moreover, the spatial and information-rich nature of vision tokens introduces structured attention patterns that make many LLM-oriented KV cache compression techniques ineffective when applied directly to VLMs. In this work, we conduct a detailed empirical analysis of the behavior of vision to-kens, highlighting the critical differences from purely text-based models. Based on these insights, we propose KVCapsule, a novel KV cache compression framework for vision tokens. KVCapsule keeps the pretrained VLM backbone frozen, requires no modification to the attention computation modules, and can be integrated into existing VLMs through lightweight compression and reconstruction components. We evaluate KVCapsule on multiple VLMs and benchmark tasks, demonstrating up to 2× improvement in TPS and 2.4× reduction in KV cache memory at a 60% compression ratio, with negligible degradation in accuracy or response quality. Our findings offer practical pathways to scale VLM inference under constrained mem-ory budgets and inspire further research into structure-aware cache compression for multimodal models. 
+
+## 1 Introduction 
+
+Extending LLMs to the multimodal domain has led to rapid progress in VLMs, enabling applications such as image captioning, visual question answering, and multimodal dialogue. Recent open-source state-of-the-art VLMs, including Qwen-VL [ 2], LLaVA-NeXT [ 20 ], and InternVL [ 34 ], demonstrate increasingly strong multimodal reasoning capabilities. Despite this progress, VLMs face a major scalability bottleneck during autoregressive decoding: the memory required to store and move the KV cache. This issue is particularly severe for vision tokens, which are encoded at higher granularity than text [ 15 , 13 ]. A single image is typically represented by hundreds or thousands of tokens, so even a few images can substantially increase the effective context length and rapidly exhaust GPU memory. This challenge is amplified in multi-image and long-context settings that arise naturally in practice, such as visual comparison, sequential reasoning over image sequences, video understanding via frame sampling, and multi-turn multimodal dialogue [ 1, 31 , 26 ]. In these scenarios, vision tokens dominate the input sequence and persist in the KV cache throughout decoding, causing memory 
+
+> Preprint.
+> arXiv:2605.16439v1 [cs.CV] 14 May 2026
+
+Figure 1: Overview of the KVCapsule framework. The gray region denotes the original process of VLMs, while the yellow region shows the process of KVCapsule. consumption to scale with both the visual context length and the decoding length. Efficient KV cache reduction is therefore essential for scalable VLM inference under realistic hardware constraints. To mitigate KV cache growth, prior work has explored compression techniques including quanti-zation [ 12 , 6], low-rank approximation [ 32 , 4 ], and attention-based pruning [ 16 , 28 ], with recent extensions to VLMs [ 25 , 11 , 24 , 22 , 27 , 3 , 23 , 14 , 29 , 13 ]. These approaches typically compress the visual KV cache using attention statistics from prefilling, assuming that token importance remains stable during generation. However, this assumption is inherited from text-only LLMs and does not necessarily hold for vision tokens. In VLMs, visual attention can vary substantially across layers, heads, and decoding steps, especially in long-context and multi-image settings, making static or attention-predicted compression policies unreliable. Our analysis reveals that vision token importance is highly context-dependent during decoding. Different layers and heads attend to different visual regions, and the set of important tokens can change as generation progresses from local visual grounding to more semantic reasoning. This behavior makes static compression fragile: a token that receives little attention during prefilling may still become useful in later decoding steps, especially in long-context or multi-image inputs where the model must revisit different parts of the visual context. Motivated by this observation, we propose KVCapsule, a backbone-frozen KV cache compression framework for vision tokens. Rather than permanently removing low-ranked tokens, KVCapsule stores compact sequence-level representations of the visual KV cache before attention score computa-tion, as shown in Figure 1. Importantly, KVCapsule uses asymmetric compression for keys and values: it reconstructs keys to preserve attention geometry, while compressing values along the sequence dimension to retain their dominant semantic subspace. At decoding time, these compressed states are reconstructed when needed, so attention can still be computed over the evolving visual context. This design separates memory reduction from irreversible token dropping, preserving flexibility under changing attention patterns while adding only lightweight matrix-multiplication overhead. KVCapsule integrates seamlessly into existing VLMs without requiring architecture changes or retraining. Evaluated across multiple VLM architectures and benchmark datasets, our method achieves substantial memory savings with minimal accuracy loss. We summarize the key contributions of this work as follows: • Sequential redundancy discovery. We identify a high degree of sequential redundancy in visual KV cache; this redundancy accumulates with increasing sequence length and is overlooked by current compression techniques (Section 2.1). • Attention dynamics analysis. We show that vision-token attention varies across layers, heads, and decoding steps, challenging static importance assumptions (Section 2.2). 2Figure 2: Prefilling attention structure. Atten-tion forms image-level blocks and selective cross-modal patterns over vision tokens. 
+
+Table 1: Top-10% attended vision-token overlap across decoding steps. Each entry reports the overlap between the top-attended vision-token sets at reference step i and comparison step j.                                         
+
+> Step
+> jReference step i
+> 01510 20
+> 10.42 ––––50.16 0.33 –––10 0.16 0.42 0.42 ––20 0.25 0.42 0.50 0.54 –40 0.25 0.33 0.42 0.71 0.66 60 0.25 0.33 0.42 0.58 0.46
+> Avg. overlap 0.25 0.37 0.44 0.61 0.56
+
+• Asymmetric KV redundancy. We empirically demonstrate a structural disparity between visual keys and values. This observation motivates our asymmetric strategy for KV cache compression (Section 2.3). • Sequential KV compression. We introduce KVCapsule, which compresses the vision-token KV cache across sequence and reconstructs it before attention computation to support dynamic attention (Section 3.1). • Simple integration. KVCapsule leaves the VLM backbone and attention modules un-changed, adding only lightweight compression and reconstruction components (Section 3.2). • Efficient inference. We show that KVCapsule substantially reduces KV memory while preserving accuracy, enabling scalable long-context and multi-image reasoning (Section 4.1 & 4.2). We further introduce fused KVCapsule, which integrates reconstruction into attention to reduce runtime overhead and improve decoding throughput (Section 4.3). 
+
+## 2 Observations 
+
+In this section, we analyze the structure and decoding behavior of visual KV states in VLMs using 500 randomly sampled examples from MEGABench [ 5]. Our measurements reveal three design-driving properties: sequence-level redundancy among vision tokens, dynamic vision token importance during decoding, and distinct structural characteristics of keys and values. These findings expose a mismatch between visual KV behavior and static-importance pruning methods designed for text-only LLMs. 
+
+2.1 Sequential Redundancy 
+
+Visual inputs contain spatial correlations and object-level coherence, creating redundancy across vision tokens. This redundancy is already visible during prefilling, when the multimodal input is encoded into the KV cache. As shown in Figure 2, attention forms image-level blocks induced by spatial coherence, while the instruction selectively attends to a compact set of salient visual regions. This structured attention indicates redundant token-level information in visual KV states, making sequence-level compression a natural way to reduce KV memory. 
+
+2.2 Sequential Dynamics of Vision-Token Importance 
+
+Structured redundancy does not imply static importance. During autoregressive decoding, the model may require different visual evidence for different generated tokens, making prefilling-only or early-decoding importance estimates unreliable. Figure 3 shows that attention over vision tokens shifts across decoding steps and layers: salient tokens may fade, while previously suppressed tokens can re-emerge. Table 1 quantifies this shift 3Figure 3: Vision-token attention dynamics. At-tention shifts across decoding steps and layers; brighter colors indicate higher attention over vi-sion tokens. 
+
+Figure 4: Key–value similarity across layers. 
+
+Keys show stronger early-layer redundancy, while values are more token-specific, motivating asym-metric compression. using the overlap of top-10% attended vision-token sets. The overlap between step 0 and steps 5 or 10 is only 0.16, and the average overlap with step 0 is only 0.25; even later-step overlaps remain far from complete. This dynamic behavior makes static token pruning risky, since removed tokens cannot contribute if they become important later. To avoid this irreversible loss, KVCapsule introduces a reconstructable visual KV cache: visual KV states are stored in compressed form and reconstructed to full length before attention, allowing the model to adapt as vision token importance shifts during generation. 
+
+2.3 Asymmetric Redundancy in KV States 
+
+Beyond decoding dynamics, visual keys and values exhibit distinct sequence-level structures, suggest-ing that they should not be compressed with the same mechanism. To characterize this asymmetry, we measure pairwise cosine similarity between key and value vectors along the vision-token sequence dimension. As shown in Figure 4, keys have substantially higher inter-token similarity than values, especially in early layers. This key redundancy indicates that many visual keys encode similar query-matching geometry. Since keys affect attention through the query-key product, a compact subset of representative keys can preserve much of the attention structure. However, because vision token importance changes during decoding, permanently pruning the remaining keys can still remove information needed later. We therefore retain representative keys and reconstruct the full key sequence before attention, reducing persistent KV storage while preserving recoverable query-key geometry. Values exhibit much lower pairwise similarity, indicating that individual value tokens carry more token-specific visual content. Directly pruning value rows can therefore discard localized semantic information. However, low pairwise similarity does not rule out low-rank structure of the full value matrix: pairwise cosine similarity measures local token-to-token closeness, whereas PCA captures dominant global modes of variation across the sequence. This motivates sequence-level PCA for values, which compresses along the token dimension while preserving contributions from all vision tokens. Appendix B further shows that visual values are dense along the hidden dimension, supporting sequence-level compression over hidden-dimension latent compression. This observation motivates the asymmetric design of KVCapsule: keys are selectively retained and reconstructed to preserve attention geometry, while values are compressed by sequence-level PCA to preserve distributed semantic content without dropping entire tokens. Appendix A provides 4quantitative evidence for this key–value distinction, and Appendix G supports the MLP-for-keys/PCA-for-values design. 
+
+2.4 Layer-wise Compression Tolerance 
+
+Figure 4 shows that visual KV redundancy is layer-dependent: early-layer keys exhibit stronger global similarity, while deeper-layer keys become more structured and less uniformly redundant; values remain comparatively token-specific across layers. Since compression errors in shallow layers can propagate through many subsequent layers, a uniform compression ratio is suboptimal. KVCapsule therefore adopts a pyramid retention schedule, preserving more visual KV information in earlier layers while applying stronger compression in later layers. Appendix F validates this design through a layer-wise compression sweep; for example, Layer 35 maintains cosine similarity above 0.93 even at a 95% compression rate. 
+
+## 3 KVCapsule Framework 
+
+3.1 Learning Compression and Reconstruction 
+
+The observations above motivate KVCapsule’s asymmetric, recoverable design: keys are selectively retained and reconstructed to preserve attention geometry, while values are compressed by sequence-level PCA to preserve distributed semantic content without irreversible token pruning. In standard multi-head attention, the attention output for queries Q ∈ Rs×dhead is computed as Attention (Q, K, V) = softmax 
+
+ QK ⊤
+
+√dhead 
+
+
+
+V,
+
+where K ∈ Rm×dhead and V ∈ Rm×dhead denote the cached keys and values, and m is the sequence length. The query-key product determines attention weights, while the attention-value product aggre-gates semantic content into the output. This functional distinction motivates different compression strategies for keys and values. 
+
+Selective Retention and Reconstruction for Keys. Keys determine attention weights through their similarity to queries. Therefore, key compression should preserve the geometry of the query-key product rather than merely retain tokens with high static attention scores. Motivated by the high inter-token redundancy of visual keys, KVCapsule stores a compact subset of representative keys and reconstructs the full key sequence before attention. This reduces persistent KV storage while avoiding permanent removal of keys that may become important at later decoding steps. Formally, let Mℓ ⊆ { 1, . . . , n } denote the indices of retained keys at layer ℓ for an image with size 
+
+n, where compressed length |M ℓ| = ⌈ℓr n⌉ and ℓr < 1 is the layer-specific retention ratio. The compressed key matrix is obtained via row selection: 
+
+˜Kℓ ∈ R⌈ℓr n⌉× dhead .
+
+To recover the full key, we employ a lightweight reconstruction network fθℓ (·) implemented as a two-layer MLP: 
+
+ˆKℓ = fθℓ ( ˜Kℓ), ˆKℓ ∈ Rn×dhead .
+
+Because visual keys exhibit strong sequence-level redundancy, a lightweight two-layer MLP can reconstruct the full key sequence from retained representatives. The mask Mℓ and reconstructor fθℓ
+
+are jointly optimized with reconstruction, BCE mask, and retention-ratio losses, selecting keys that support accurate recovery while meeting the target compression budget. At inference, Mℓ and θℓ are fixed and reused for layer-wise key compression and reconstruction. 
+
+Sequence-Level Low-Rank Compression for Values. Values are directly aggregated into the attention output and carry token-specific visual content. As a result, pruning value rows can remove localized semantic information. Instead of selecting a subset of value tokens, KVCapsule compresses values along the sequence dimension using PCA. This preserves dominant sequence-level variation while allowing all vision tokens to contribute to the compressed representation. 5Formally, let Vℓ ∈ Rn×dhead denote the value matrix at layer ℓ. We first compute a sequence-wise mean μℓ ∈ Rdhead and center the values as: 
+
+Vcenter  
+
+> ℓ
+
+= Vℓ − 1nμ⊤ 
+
+> ℓ
+
+.
+
+We then perform PCA along the sequence dimension and retain the top ⌈ℓr n⌉ principal components. This yields a projection matrix Uℓ ∈ R⌈ℓr n⌉× n and a compressed value representation: 
+
+˜Vℓ = UℓVcenter  
+
+> ℓ
+
+, ˜Vℓ ∈ R⌈ℓr n⌉× dhead .
+
+During standard attention, the full-length value sequence is reconstructed by linear re-projection: 
+
+ˆVℓ = U⊤ 
+
+> ℓ
+
+˜Vℓ + 1nμ⊤ 
+
+> ℓ
+
+, ˆVℓ ∈ Rn×dhead .
+
+The projection matrix Uℓ is obtained via singular value decomposition of centered value activations collected from a multimodal dataset. Retaining the top ⌈ℓr n⌉ components gives the optimal rank-
+
+⌈ℓr n⌉ approximation under the Frobenius norm. Unlike token pruning, this sequence-level projection does not discard entire value rows; instead, each token contributes to the compressed representation through the learned basis. Algorithm 2 in Appendix C summarizes the training procedure for key masks, key reconstructors, and value PCA bases. Appendix E compares alternative reconstruction designs and supports our hybrid MLP-for-keys/PCA-for-values configuration. 
+
+3.2 Inference 
+
+At inference time, all learned masks, key reconstructors, PCA bases, and centering vectors are fixed. Following the layer-wise compression tolerance observed in Section 2.4, KVCapsule uses a pyramid retention schedule: earlier layers retain more visual KV information, while deeper layers are compressed more aggressively. 
+
+Prefilling Stage During prefilling, KVCapsule initializes a compressed KV cache for vision tokens. At each layer ℓ, visual keys are compressed by the learned mask Mℓ, and visual values are centered and projected onto the sequence-level PCA basis Uℓ. Only the compressed visual keys and values are stored in the persistent cache. Text-token KV states are left unchanged, preserving the original language-cache behavior of the backbone VLM. 
+
+Decoding Stage During decoding, KVCapsule reconstructs full-length visual KV representations before attention. Keys are recovered by the lightweight reconstructor fθℓ , while values are restored by linear re-projection using Uℓ and μℓ. The reconstructed visual KV tensors are concatenated with the uncompressed text KV tensors and passed to the original attention module. Thus, KVCapsule reduces persistent visual KV storage without modifying the backbone attention interface. Since attention is still computed over a reconstructed full-length visual sequence, the model can adapt to shifting vision token importance during generation. Appendix H shows that this recoverable decoding strategy better preserves the full-cache attention pattern than a static compressed variant. 
+
+## 4 Experiments 
+
+We evaluate KVCapsule on accuracy preservation, robustness across image and video tasks, cross-backbone generality, and inference efficiency. In all experiments, KVCapsule reduces stored visual KV length by about 60% on average using a pyramid layer-wise schedule, while competing baselines are configured to a comparable 55%-65% storage reduction for fair comparison. Additional ablations on layer-wise compression ratios and input resolution are provided in Appendices F and I. 
+
+4.1 Image-based Evaluation on VLMEvalKit 
+
+Table 2 reports VLMEvalKit [ 7 ] results on MME [ 33 ], MMMU [ 30 ], COCO captioning [ 17 ], MMBench [ 21 ], LLaVABench [ 19 , 18 ], and HallusionBench [ 10 ], covering perception, reasoning, captioning, instruction following, hallucination robustness, and multi-image understanding. Across five VLM backbones, KVCapsule closely matches the full-cache baseline while storing only com-pressed visual KV states. Compared with static pruning baselines, KVCapsule is more stable across models and tasks, where irreversible token removal causes large degradation. These results show that recoverable asymmetric compression preserves visual information better than token pruning. 6Table 2: Performance comparison of KVCapsule and other baselines on VLMEvalKit across VLMs. 
+
+VLMs *
+
+MME MMMU COCO MMBench LLaVABench HallusionBench 
+
+> Qwen2
+
+Baseline: all KV 1687.70 0.42 14.28 0.82 80.80 60.12 KVCapsule 1634.22 0.42 14.40 0.83 74.80 60.99 
+
+FastV 1498.46 0.42 15.00 0.68 55.50 58.68 SparseVLMs 1637.74 0.41 14.28 0.81 75.30 60.74 Prumerge 1637.64 0.42 14.28 0.81 74.70 60.74 
+
+> Qwen2.5
+
+Baseline: all KV 1685.80 0.20 15.40 0.80 85.90 65.60 KVCapsule 1635.80 0.20 14.40 0.79 83.70 62.20 
+
+FastV 155.30 0.14 5.90 0.00 12.90 25.60 SparseVLMs 1637.64 0.20 15.40 0.80 80.20 60.74 Prumerge 1637.64 0.20 15.40 0.80 78.20 60.74 
+
+> Qwen3
+
+Baseline: all KV 1735.60 0.52 15.70 0.80 74.80 53.90 KVCapsule 1708.49 0.48 15.80 0.78 73.80 53.70 FastV 561.25 0.35 8.01 0.39 22.30 47.83 SparseVLMs 1706.44 0.34 15.60 0.80 72.00 47.03 Prumerge 1560.20 0.48 15.70 0.73 73.40 53.80 
+
+> LLaVA-Mistral
+
+Baseline: all KV 1458.12 0.40 14.39 0.68 67.80 40.80 KVCapsule 1458.10 0.41 14.42 0.67 67.80 40.80 FastV 1440.69 0.37 15.24 0.68 67.70 40.80 SparseVLMs 1339.93 0.39 15.60 0.64 67.80 45.11 Prumerge 1457.62 0.39 14.30 0.68 66.50 48.15 
+
+> LLaVA-Llama
+
+Baseline: all KV 1515.40 0.46 14.70 0.72 66.30 37.90 KVCapsule 1533.40 0.60 14.70 0.71 66.00 49.40 FastV 1525.65 0.46 14.50 0.69 64.30 43.60 SparseVLMs 1504.79 0.45 14.40 0.69 65.20 50.00 Prumerge 1526.40 0.49 14.30 0.71 65.20 52.79     
+
+> Evaluated models: Qwen2-VL-7B-Instruct ,Qwen2.5-VL-7B-Instruct ,Qwen3-VL-8B-Instruct ,
+> llava-v1.6-mistral-7b-hf ,llama3-llava-next-8b-hf .
+
+Table 3: Performance comparison of KVCapsule and other baselines on video datasets across VLMs. 
+
+MME(short) MME(medium) MME(long) MMBench(coarse) MMBench(fine) 
+
+> Qwen2
+
+Baseline: all KV 0.60 0.47 0.44 1.23 1.23 KVCapsule 0.60 0.47 0.44 1.23 1.23 FastV 0.58 0.49 0.42 1.30 1.24 SparseVLMs 0.60 0.47 0.44 1.24 1.22 Prumerge 0.60 0.47 0.43 1.23 1.22 
+
+> Qwen2.5
+
+Baseline: all KV 0.59 0.50 0.46 1.18 1.22 KVCapsule 0.59 0.50 0.44 0.90 1.01 
+
+FastV 0.58 0.49 0.43 0.17 0.08 SparseVLMs 0.60 0.48 0.44 0.69 0.73 Prumerge 0.60 0.48 0.43 0.90 0.96 
+
+> Qwen3
+
+Baseline: all KV 0.66 0.54 0.50 1.49 1.56 KVCapsule 0.66 0.54 0.50 1.49 1.58 
+
+FastV 0.33 0.32 0.30 0.56 0.59 SparseVLMs 0.58 0.49 0.49 1.20 1.24 Prumerge 0.60 0.48 0.43 1.50 1.53 
+
+4.2 Video Understanding Evaluation 
+
+To evaluate KVCapsule beyond static images, Table 3 reports results on Video-MME [ 9] and MMBench-Video [ 8]. Across both benchmarks, KVCapsule closely matches the full-cache baseline on short, medium, and long video inputs, while remaining more stable than pruning baselines under dynamic visual contexts. These results show that recoverable visual KV compression preserves the information needed for temporally extended multimodal reasoning. 
+
+4.3 Efficiency Analysis 
+
+7Algorithm 1 Fused KVCapsule for Layer ℓ
+
+Input: query Q; compressed visual KV ( ˜Kℓ, ˜Vℓ); key reconstructor θℓ; value PCA (Uℓ, μℓ); scaling σ;compressed length ⌈ℓr n⌉; groups G; rank R
+
+Output: Attention output Y
+
+// Step 1: Compute scores in compressed sequence space 
+
+Scomp ← (Q ˜K⊤ 
+
+> ℓ
+
+) · σSfull ← RESHAPE (Scomp , [B, H kv , G, R, ⌈ℓr n⌉]) 
+
+// Step 2: Expand to spatial resolution 
+
+Limg ← MAT MUL (Sfull , θ ℓ)
+
+P ← SOFTMAX (Limg )
+
+// Step 3: Associative Re-projection with Transposed U 
+
+Wℓ ← MAT MUL (P, U⊤ 
+
+> ℓ
+
+)
+
+// Step 4: Multiply with compressed values 
+
+Y ← MAT MUL (Wℓ, ˜Vℓ) + MAT MUL (P, μℓ)
+
+Return Y
+
+(a) Throughput scaling on AMD MI250X. (b) Persistent KV memory footprint. 
+
+Method / Metric (ms/token) 9K 10K 11K 12K 13K 14K 15K 
+
+All KV 74.58 73.23 76.47 79.69 82.91 86.05 89.16 KVCapsule 70.22 67.02 68.46 67.69 67.00 67.58 66.18 
+
+Latency reduction 5.8% 8.5% 10.5% 15.1% 19.2% 21.5% 25.8% 
+
+(c) Per-token latency. 
+
+Figure 5: Efficiency analysis of fused KVCapsule. (a) Fused KVCapsule improves decoding throughput over the full-cache baseline. (b) KVCapsule reduces persistent KV memory after the break-even point at L ≈ 626 tokens. (c) For batch size 1, KVCapsule reduces per-token latency across 9K-15K inputs, with relative reductions reported in the last row. 
+
+Inference Latency. As shown in Algorithm 1, fused KVCapsule integrates reconstruction into decode-time attention, avoiding explicit materialization of full-length visual KV tensors. For values, instead of reconstructing ˆVℓ before attention, we use associativity: 
+
+P (U⊤ 
+
+> ℓ
+
+˜Vℓ + μℓ) = ( P U⊤ 
+
+> ℓ
+
+) ˜Vℓ + P μℓ.
+
+This projects the full-resolution attention probabilities into the compressed value space, allowing the final multiplication with the value cache to operate over ⌈ℓr n⌉ compressed value states rather than n
+
+full-length vision states. For keys, fused KVCapsule first computes attention scores using the compressed keys, then expands these scores before softmax instead of materializing the full key cache. Since KV tensors are repeatedly read during decoding while scores are temporary, this reduces dominant KV memory traffic while preserving attention over the reconstructed visual sequence. The gain is algorithmic, arising from compression and associative reordering rather than hardware-specific optimization. Figure 5(a) shows that fused KVCapsule improves decoding TPS over the full-cache baseline, while Figure 5(c) shows that KVCapsule reduces batch-size-1 per-token latency across 9K-15K inputs, with larger reductions at longer input lengths. 8Theoretical Memory Footprint. We analyze the persistent memory footprint S of a single Trans-former layer to quantify the trade-off between KV cache savings and reconstruction overhead. For the full-cache baseline, memory scales with the stored sequence length (c + n + t), including text prompt tokens, vision tokens, and generated tokens. In contrast, KVCapsule stores only ⌈ℓr n⌉ compressed vision tokens, changing the dominant KV cache term from (c + n + t) to (c + ⌈ℓr n⌉ + t).KVCapsule adds fixed layer-wise overhead from the key reconstructor θℓ and value PCA parameters 
+
+(Uℓ, μℓ), but this overhead is independent of batch size and generated length. As shown in Figure 5(b), KVCapsule reaches a break-even point at L ≈ 626 tokens; beyond this point, persistent visual-KV savings outweigh reconstruction-parameter overhead. The full derivation is provided in Appendix D. 
+
+## 5 Related Work 
+
+Quantization-aware KV cache compression. These methods reduce KV cache memory by lowering tensor precision. Su et al. [ 25 ] propose an adaptive quantization strategy tailored to multimodal inputs, while Han et al. [ 11 ] introduce a calibration framework to retain accuracy after quantizing the KV cache. These methods operate at the element-wise level and do not reduce sequence length. In contrast, our method structurally compresses visual KV cache along the sequential axis, enabling higher memory savings without precision loss. 
+
+Low-rank and subspace approximations. Low-rank methods compress KV tensors by projecting them into low-dimensional subspaces. Saxena et al. [ 24 ] apply eigen decomposition to capture dominant token features, Zhang et al. [ 32 ] propose orthogonal projections for cache reuse, and Mu et al. [ 22 ] use subspace alignment for layer-wise KV compression. These approaches assume global low-rank structure and often require full-tensor reconstruction during decoding. Our method avoids such assumptions by leveraging localized, layer-dependent redundancy in vision sequences and reconstructing only what is needed before each attention step. 
+
+Attention-guided token selection and pruning. Pruning methods identify and retain salient KV entries based on attention scores. Tu et al. [ 27 ] propose vision token distillation based on average attention, Chang et al. [ 3] prune cross-modal tokens with learned gates, Pei et al. [ 23 ] use cross-attention similarity, Jiang et al. [ 14 ] apply early exit mechanisms to stop storing low-value KV pairs, Yang et al. [ 29 ] select top-K based on relevance, and Huang et al. [ 13 ] explore adaptive spatial region selection. These methods generally assume that token importance remains stable throughout generation and typically prune based on prefilling or early decoding scores. Our approach challenges this assumption by empirically showing that visual attention patterns evolve during decoding and exhibit asymmetric redundancy across keys and values. We compress vision token sequences at the sequential level and reconstruct before attention computation, allowing the model to dynamically adapt its attention without being constrained by static compression decisions. 
+
+## 6 Conclusion 
+
+We presented KVCapsule, an asymmetric visual KV cache compression framework for efficient VLM inference. KVCapsule combines MLP-based key reconstruction with sequence-level PCA for values, preserving recoverable visual information while reducing persistent KV storage. Across multiple VLMs and image/video benchmarks, KVCapsule closely preserves full-cache accuracy while achieving up to 2× TPS improvement and 2.4× persistent memory reduction. A current limitation is that the fixed reconstruction and PCA parameters introduce overhead, so the benefits are strongest when visual contexts are long enough for KV cache savings to dominate; our Torch-level implementation also leaves room for further gains from optimized serving kernels. By reducing memory demand and serving cost, KVCapsule can make long-context multimodal inference more accessible and resource-efficient. As with any VLM inference system, deployment should follow the safety policies and safeguards of the underlying models. We hope this work motivates future VLM systems that natively operate on compressed multimodal KV caches for scalable inference. 9References 
+
+[1] Jean-Baptiste Alayrac, Jeff Donahue, Pauline Luc, Antoine Miech, Iain Barr, Yana Hasson, Karel Lenc, Arthur Mensch, Katherine Millican, Malcolm Reynolds, et al. Flamingo: a visual language model for few-shot learning. Advances in neural information processing systems , 35: 23716–23736, 2022. [2] Jinze Bai, Shuai Bai, Shusheng Yang, Shijie Wang, Sinan Tan, Peng Wang, Junyang Lin, Chang Zhou, and Jingren Zhou. Qwen-vl: A versatile vision-language model for understanding, localization, text reading, and beyond. arXiv preprint arXiv:2308.12966 , 2023. [3] Chi-Chih Chang, Chien-Yu Lin, Yash Akhauri, Wei-Cheng Lin, Kai-Chiang Wu, Luis Ceze, and Mohamed S Abdelfattah. xkv: Cross-layer svd for kv-cache compression. arXiv preprint arXiv:2503.18893 , 2025. [4] Chi-Chih Chang, Wei-Cheng Lin, Chien-Yu Lin, Chong-Yan Chen, Yu-Fang Hu, Pei-Shuo Wang, Ning-Chi Huang, Luis Ceze, Mohamed S Abdelfattah, and Kai-Chiang Wu. Palu: Kv-cache compression with low-rank projection. In The Thirteenth International Conference on Learning Representations , 2025. [5] Jiacheng Chen, Tianhao Liang, Sherman Siu, Zhengqing Wang, Kai Wang, Yubo Wang, Yuan-sheng Ni, Wang Zhu, Ziyan Jiang, Bohan Lyu, Dongfu Jiang, Xuan He, Yuan Liu, Hexiang Hu, Xiang Yue, and Wenhu Chen. Mega-bench: Scaling multimodal evaluation to over 500 real-world tasks. 2025. [6] Wen Cheng, Shichen Dong, Jiayu Qin, and Wei Wang. Qaq: Quality adaptive quantization for llm kv cache. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,pages 2542–2550, 2025. [7] Haodong Duan, Junming Yang, Yuxuan Qiao, Xinyu Fang, Lin Chen, Yuan Liu, Xiaoyi Dong, Yuhang Zang, Pan Zhang, Jiaqi Wang, et al. Vlmevalkit: An open-source toolkit for evaluating large multi-modality models. In Proceedings of the 32nd ACM International Conference on Multimedia , pages 11198–11201, 2024. [8] Xinyu Fang, Kangrui Mao, Haodong Duan, Xiangyu Zhao, Yining Li, Dahua Lin, and Kai Chen. Mmbench-video: A long-form multi-shot benchmark for holistic video understanding. 
+
+Advances in Neural Information Processing Systems , 37:89098–89124, 2024. [9] Chaoyou Fu, Yuhan Dai, Yongdong Luo, Lei Li, Shuhuai Ren, Renrui Zhang, Zihan Wang, Chenyu Zhou, Yunhang Shen, Mengdan Zhang, et al. Video-mme: The first-ever comprehensive evaluation benchmark of multi-modal llms in video analysis. In CVPR , 2025. [10] Tianrui Guan, Fuxiao Liu, Xiyang Wu, Ruiqi Xian, Zongxia Li, Xiaoyu Liu, Xijun Wang, Lichang Chen, Furong Huang, Yaser Yacoob, et al. Hallusionbench: an advanced diagnostic suite for entangled language hallucination and visual illusion in large vision-language models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pages 14375–14385, 2024. [11] Insu Han, Zeliang Zhang, Zhiyuan Wang, Yifan Zhu, Susan Liang, Jiani Liu, Haiting Lin, Mingjie Zhao, Chenliang Xu, Kun Wan, et al. Calibquant: 1-bit kv cache quantization for multimodal llms. arXiv preprint arXiv:2502.14882 , 2025. [12] Coleman Hooper, Sehoon Kim, Hiva Mohammadzadeh, Michael W Mahoney, Yakun S Shao, Kurt Keutzer, and Amir Gholami. Kvquant: Towards 10 million context length llm inference with kv cache quantization. Advances in Neural Information Processing Systems , 37:1270–1303, 2024. [13] Kai Huang, Hao Zou, Bochen Wang, Ye Xi, Zhen Xie, and Hao Wang. Aircache: Activating inter-modal relevancy kv cache compression for efficient large vision-language model inference. 
+
+arXiv preprint arXiv:2503.23956 , 2025. [14] Zhonghua Jiang, Kunxi Li, Yiyun Zhou, Sihao Liu, Zhaode Wang, Shengyu Zhang, et al. Purekv: Plug-and-play kv cache optimization with spatial-temporal sparse attention for vision-language large models. arXiv preprint arXiv:2510.25600 , 2025. 10 [15] Kunxi Li, Zhonghua Jiang, Zhouzhou Shen, ZhaodeWang ZhaodeWang, Chengfei Lv, Shengyu Zhang, Fan Wu, and Fei Wu. Madakv: Adaptive modality-perception kv cache eviction for efficient multimodal long-context inference. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 13306–13318, 2025. [16] Yuhong Li, Yingbing Huang, Bowen Yang, Bharat Venkitesh, Acyr Locatelli, Hanchen Ye, Tianle Cai, Patrick Lewis, and Deming Chen. Snapkv: Llm knows what you are looking for before generation. Advances in Neural Information Processing Systems , 37:22947–22970, 2024. [17] Tsung-Yi Lin, Michael Maire, Serge Belongie, Lubomir Bourdev, Ross Girshick, James Hays, Pietro Perona, Deva Ramanan, C. Lawrence Zitnick, and Piotr Dollár. Microsoft coco: Common objects in context, 2015. URL https://arxiv.org/abs/1405.0312 .[18] Haotian Liu, Chunyuan Li, Yuheng Li, and Yong Jae Lee. Improved baselines with visual instruction tuning, 2023. [19] Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. Visual instruction tuning. In 
+
+NeurIPS , 2023. [20] Haotian Liu, Chunyuan Li, Yuheng Li, Bo Li, Yuanhan Zhang, Sheng Shen, and Yong Jae Lee. Llava-next: Improved reasoning, ocr, and world knowledge, January 2024. URL https: //llava-vl.github.io/blog/2024-01-30-llava-next/ .[21] Yuan Liu, Haodong Duan, Yuanhan Zhang, Bo Li, Songyang Zhang, Wangbo Zhao, Yike Yuan, Jiaqi Wang, Conghui He, Ziwei Liu, et al. Mmbench: Is your multi-modal model an all-around player? In European conference on computer vision , pages 216–233. Springer, 2024. [22] Junlin Mu, Hantao Huang, Jihang Zhang, Minghui Yu, Tao Wang, and Yidong Li. Sals: Sparse attention in latent space for kv cache compression. arXiv preprint arXiv:2510.24273 , 2025. [23] Xiaohuan Pei, Tao Huang, and Chang Xu. Cross-self kv cache pruning for efficient vision-language inference. arXiv preprint arXiv:2412.04652 , 2024. [24] Utkarsh Saxena, Gobinda Saha, Sakshi Choudhary, and Kaushik Roy. Eigen attention: Attention in low-rank space for kv cache compression. arXiv preprint arXiv:2408.05646 , 2024. [25] Zunhai Su, Wang Shen, Linge Li, Zhe Chen, Hanyu Wei, Huangqi Yu, and Kehong Yuan. Akvq-vl: Attention-aware kv cache adaptive 2-bit quantization for vision-language models. 
+
+arXiv preprint arXiv:2501.15021 , 2025. [26] Alane Suhr, Stephanie Zhou, Ally Zhang, Iris Zhang, Huajun Bai, and Yoav Artzi. A corpus for reasoning about natural language grounded in photographs. In Proceedings of the 57th annual meeting of the association for computational linguistics , pages 6418–6428, 2019. [27] Dezhan Tu, Danylo Vashchilenko, Yuzhe Lu, and Panpan Xu. Vl-cache: Sparsity and modality-aware kv cache compression for vision-language model inference acceleration. arXiv preprint arXiv:2410.23317 , 2024. [28] Zhongwei Wan, Ziang Wu, Che Liu, Jinfa Huang, Zhihong Zhu, Peng Jin, Longyue Wang, and Li Yuan. Look-m: Look-once optimization in kv cache for efficient multimodal long-context inference. arXiv preprint arXiv:2406.18139 , 2024. [29] Cheng Yang, Yang Sui, Jinqi Xiao, Lingyi Huang, Yu Gong, Chendi Li, Jinghua Yan, Yu Bai, Ponnuswamy Sadayappan, Xia Hu, et al. Topv: Compatible token pruning with inference time optimization for fast and low-memory multimodal vision language model. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 19803–19813, 2025. [30] Xiang Yue, Yuansheng Ni, Kai Zhang, Tianyu Zheng, Ruoqi Liu, Ge Zhang, Samuel Stevens, Dongfu Jiang, Weiming Ren, Yuxuan Sun, Cong Wei, Botao Yu, Ruibin Yuan, Renliang Sun, Ming Yin, Boyuan Zheng, Zhenzhu Yang, Yibo Liu, Wenhao Huang, Huan Sun, Yu Su, and Wenhu Chen. Mmmu: A massive multi-discipline multimodal understanding and reasoning benchmark for expert agi. In Proceedings of CVPR , 2024. 11 [31] Hang Zhang, Xin Li, and Lidong Bing. Video-llama: An instruction-tuned audio-visual language model for video understanding. arXiv preprint arXiv:2306.02858 , 2023. [32] Rongzhi Zhang, Kuang Wang, Liyuan Liu, Shuohang Wang, Hao Cheng, Chao Zhang, and Yelong Shen. Lorc: Low-rank compression for llms kv cache with a progressive compression strategy. arXiv preprint arXiv:2410.03111 , 2024. [33] Yi-Fan Zhang, Huanyu Zhang, Haochen Tian, Chaoyou Fu, Shuangqing Zhang, Junfei Wu, Feng Li, Kun Wang, Qingsong Wen, Zhang Zhang, et al. Mme-realworld: Could your multimodal llm challenge high-resolution real-world scenarios that are difficult for humans? arXiv preprint arXiv:2408.13257 , 2024. [34] Jinguo Zhu, Weiyun Wang, Zhe Chen, Zhaoyang Liu, Shenglong Ye, Lixin Gu, Hao Tian, Yuchen Duan, Weijie Su, Jie Shao, et al. Internvl3: Exploring advanced training and test-time recipes for open-source multimodal models. arXiv preprint arXiv:2504.10479 , 2025. 12 A Quantitative Analysis of Key-Value Asymmetry 
+
+To strengthen our observation, we conduct a quantitative analysis on 500 randomly selected MEGABench samples. As shown in Table 4, keys consistently exhibit much higher inter-token cosine similarity than values across representative layers. For example, key similarity remains high from shallow to deeper layers, while value similarity stays substantially lower. This supports our observation that keys contain stronger inter-token redundancy, whereas values are more token-specific and should avoid direct token dropping. These results support our asymmetric design choice of applying structure-preserving reconstruction to keys and PCA-based subspace compression to values. Table 4: Inter-token cosine similarity of keys and values across representative layers, measured on 500 randomly selected MEGABench samples.         
+
+> Layer Key Similarity Value Similarity
+> Layer 0 0.99 0.35 Layer 10 0.87 0.40 Layer 20 0.66 0.30
+
+## B Hidden-Dimension Compression Is Inefficient for Visual Values 
+
+Figure 6: Hidden-dimension PCA energy for visual KV states. We compute cumulative PCA energy over feature channels for visual keys and values. Values require nearly the full hidden dimension to preserve 95% variance across layers, suggesting that hidden-dimension compression is inefficient for visual values. To examine whether visual KV states can be compressed along the hidden dimension, we compute the cumulative PCA energy of keys and values over feature channels using 500 randomly sampled 13 Table 5: Hidden-dimension PCA ranks required to preserve variance over feature channels. Results are computed on 500 randomly sampled MEGABench examples. 
+
+Metric Layer 0 Layer 10 Layer 20 
+
+Key rank 90% 1 15 38 Key rank 95% 1 37 57 Key rank 99% 3 89 97 Value rank 90% 102 99 100 Value rank 95% 114 113 113 Value rank 99% 125 125 125 Value rank 95% fraction 0.89 0.88 0.88 Value rank 99% fraction 0.98 0.98 0.98 Value top-10 ratio 0.28 0.32 0.26 
+
+MEGABench examples. As shown in Figure 6 and Table 5, visual values are dense along the feature dimension: preserving 95% variance requires retaining 113-114 out of 128 dimensions across layers, and preserving 99% variance requires 125 dimensions. This makes hidden-dimension compression inefficient for visual values. This analysis also distinguishes KVCapsule from MLA-style latent KV compression, which reduces KV memory by projecting keys and values into a compact latent feature space. In contrast, our results show that visual values are poorly compressible along the hidden dimension, while their sequence-level structure can still be exploited by PCA across vision tokens. Therefore, KVCapsule preserves the hidden dimension and compresses values along the vision token sequence, reducing memory without aggressively discarding feature-channel information. 
+
+## C Training Procedure for Layer-wise KVCapsule Compression 
+
+The training procedure shown in Algorithm 2 separates the learning of keys and values according to their different roles in attention. For values, the PCA bases are fitted once per layer from the training split, since value compression is formulated as a fixed sequence-level low-rank projection. For keys, the mask and reconstructor are optimized iteratively: the schedule controls the training phase and temperature τ , while the mask loss encourages the selected tokens to satisfy the target retention ratio 
+
+ℓr . After training, all learned components are fixed and reused during inference, so the method does not require modifying or fine-tuning the VLM backbone. 
+
+Algorithm 2 Layer-wise Training Procedure for KVCapsule 
+
+Input: Layer-wise KV dataset {D ℓ}Lℓ=1 , retention ratio ℓr
+
+Output: Learned key reconstructor {θℓ} and value PCA bases {(Uℓ, μℓ)}
+
+Split Dℓ into training and validation sets Initialize key reconstructor fθℓ with retention ratio ℓr
+
+// Sequence-level PCA for values (once per layer) 
+
+(Uℓ, μℓ) ← FIT VALUE PCA (Dtrain  
+
+> ℓ
+
+, ⌈ℓr n⌉)
+
+Save (Uℓ, μℓ)
+
+for e in Epochs do 
+
+(phase , τ ) ← TRAINING SCHEDULE (e)
+
+for (Kℓ, V ℓ) ∼ D train  
+
+> ℓ
+
+do 
+
+Mℓ ← GET MASK (θℓ, τ, ℓ r , phase )˜Kℓ ← Kℓ ⊙ M ℓ
+
+ˆKℓ ← fθℓ ( ˜Kℓ)
+
+L ← MSE ( ˆKℓ, K ℓ) + λ Lmask (Mℓ, ℓ r )
+
+Update θℓ by minimizing L
+
+end for end for 
+
+14 D Theoretical Memory Footprint of KVCapsule 
+
+We analyze the persistent memory footprint S of a single Transformer layer ℓ. In a standard Grouped-Query Attention (GQA) architecture, the baseline footprint Sbase stores both keys and values for the text prompt, vision tokens, and generated tokens: 
+
+Sbase = 2 · B · Hkv · (c + n + t) · dhead · bkv , (1) where B is the batch size, Hkv is the number of KV heads, c is the prompt length, n is the number of vision tokens, t is the generation step, dhead is the head dimension, bkv is the bytes per KV element. KVCapsule reduces the stored visual sequence length from n to ⌈ℓr n⌉ and introduces reconstruction parameters. The resulting memory footprint is: 
+
+Sours = 2 · B · Hkv · (c + ⌈ℓr n⌉ + t) · dhead · bkv 
+
+| {z }
+
+> Compressed KV Cache
+
++ Srecon (θℓ) + SPCA (Uℓ)
+
+| {z }
+
+> Parameter Overhead
+
+. (2) The parameter overhead consists of two components. First, the value reconstruction uses PCA bases Uℓ ∈ RHkv ×⌈ ℓr n⌉× n, together with the mean term μℓ. Second, the key reconstructor fθℓ is dominated by the score reconstruction matrix θℓ ∈ RHkv ×⌈ ℓr n⌉× n, which maps compressed attention scores back to the full vision token length for the final attention calculation. Thus, the additional overhead is mainly determined by the vision token resolution and compressed length. This formulation shows the trade-off between reducing the dominant KV cache term and adding reconstruction parameters. The baseline KV cache scales with (c + n + t), while KVCapsule replaces the vision-token term n with ⌈ℓr n⌉ in the stored KV cache. Although the reconstruction matrices introduce additional storage, this overhead is separate from the per-batch KV cache term. Therefore, in the long-context regime where KV cache storage dominates, the compressed KV cache savings can outweigh the reconstruction overhead, leading to a lower overall memory footprint. As illustrated in Figure 5b, this results in a reduced memory growth rate and enables longer supported sequence lengths under a fixed HBM budget. 
+
+## E Ablation on Key and Value Reconstruction Designs 
+
+To validate the reconstruction design in KVCapsule, we conducted an ablation study using the Qwen2-VL-8B-Instruct model evaluated on 500+ randomly selected samples from the MEGABench dataset [ 5]. The empirical evidence presented in the reconstruction plots strongly supports the hybrid design choice of utilizing a 2-layer MLP for key reconstruction and PCA for value reconstruction. By isolating these components across all 36 layers of the model, we demonstrate that this specific configuration addresses the distinct mathematical requirements of keys and values in the attention mechanism. By integrating these two approaches, our method achieves an optimal balance: while keys benefit from the non-linear discrimination required for selective retention of specific features, values rely on efficient preservation to maintain the integrity of their semantic content. This hybrid strategy ensures high reconstruction quality throughout the model’s depth by aligning each reconstruction technique with the distinct functional roles of the KV cache components. 
+
+## F Layer-wise Compression Ratio Sensitivity 
+
+To determine the optimal distribution of memory resources across the network, we conducted a layer-wise sensitivity analysis using the Qwen2-VL-8B-Instruct model evaluated on 500 randomly selected samples from the MEGABench dataset. The empirical results support a pyramid compression schedule, where earlier layers require lower compression, while deeper layers tolerate more aggressive compression. We implemented a sensitivity sweep across a representative subset of layers to measure reconstruction fidelity under varying compression ratios ranging from 0.1 to 0.95. By calculating the mean cosine 15 Figure 7: Comparison of Key and Value Reconstruction Designs. This figure illustrates the effectiveness of a hybrid MLP–PCA architecture compared to baseline methods across 36 layers of a neural network. Performance is measured by the cosine similarity between the original and reconstructed vectors (higher is better). similarity between the original and reconstructed tensors across different mask ratios, we identified the specific information-retention requirements of each network stage. Sensitivity analysis in Figure 8 reveals that final layers are remarkably resilient to aggressive compres-sion. For instance, Layer 35 maintains a reconstruction cosine similarity above 0.93 even at a 0.95 compression ratio, significantly outperforming middle-layer benchmarks under the same constraints. Combined with observations in Figure 4, the sequence-wise similarity heatmaps for initial layers show complex, high-contrast patterns and dense feature mappings. This suggests that foundational features lack redundancy and act as high-fidelity extractors, requiring higher retention to avoid losing critical context. As the model depth increases, the heatmaps transition from complex textures into prominent vertical and horizontal stripes. These patterns appear because certain "anchor" tokens begin to share a high degree of similarity with almost every other token in the sequence. This convergence indicates that the model has synthesized raw inputs into more stable semantic concepts. 
+
+## G Ablation on K-side and V-side Reconstruction 
+
+The K-only / V-only ablation isolates how each component affects the final attention pattern. The results in Table 6 show that attention fidelity is more sensitive to K-side compression, since approxi-mating keys directly changes the attention-score geometry and can shift where the model attends. In contrast, V-side compression appears less disruptive under attention-pattern metrics, but this does not mean values can be compressed aggressively: values carry the content aggregated by attention, so even small value perturbations can still degrade generation quality. This observation motivates KVCapsule’s asymmetric design: we reconstruct keys to better preserve attention geometry, while 16 Figure 8: KV Cache Reconstruction Accuracy vs. Compression Ratio. The plot illustrates the relationship between compression ratio (mask ratio) and reconstruction cosine similarity across various model layers. Table 6: Ablation study on the individual effects of key and value reconstruction in KVCapsule.               
+
+> Method Cosine Similarity MSE
+> KVCapsule (K only) 0.58 1.07 ×10 −6
+> KVCapsule (V only) 0.76 7.27 ×10 −7
+> KVCapsule 0.60 1.05 ×10 −6
+
+applying a more conservative PCA-based compression to values instead of hard pruning. Overall, the ablation supports our claim that keys and values play distinct roles and should be compressed with different strategies rather than a single uniform compression rule. 
+
+## H Ablation on Static Compression vs. Reconstruction-before-Attention 
+
+Table 7: Ablation study on static vs. dynamic lossy compression. We compare the final attention weights against the full-cache baseline.           
+
+> Comparison Cosine Similarity MSE
+> All KV vs. KVCapsule w/ reconstruction 0.60 7.74 ×10 −7
+> All KV vs. static KVCapsule w/o reconstruction 0.24 1.07 ×10 −6
+
+We conduct an ablation study to compare dynamic lossy compression with per-step reconstruction against a static lossy compression variant where reconstruction is disabled and the compressed KV is used directly throughout decoding. The results in Table 7 show that dynamic reconstruction preserves the final attention pattern much better than the static compressed variant under the same compressed storage setting. This supports our motivation that vision token importance and attention geometry evolve during decoding, making a fixed compressed representation brittle. By reconstructing KV before attention, KVCapsule better adapts the compressed representation to the current decoding step and reduces the mismatch from the full-cache baseline. 
+
+## I Image Resolution Sensitivity 
+
+Table 8 reports the ablation study of KVCapsule under different input image resolutions on Qwen3-VL across VLMEvalKit benchmarks. In the main paper, we provide the results with 1× resolution. Here, we also report results using the same images at 4× higher spatial resolution (four times the number of 17 input pixels). Overall, these results indicate that KVCapsule maintains a robust accuracy-efficiency trade-off under moderate resolution reduction. Table 8: Performance comparison of KVCapsule with different resolutions on VLMEvalKit. 
+
+VLMs *
+
+MME MMMU COCO MMBench LLaVABench HallusionBench 
+
+> Qwen3
+
+Baseline: all KV 1735.60 0.52 15.70 0.80 74.80 53.90 KVCapsule: 1x resolution 1708.49 0.48 15.80 0.78 73.80 53.70 KVCapsule: 4x resolution 1740.78 0.54 13.12 0.84 76.80 63.40 FastV 561.25 0.35 8.01 0.39 22.30 47.83 
+
+18
