@@ -6,80 +6,71 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-09
-- 运行时间：2026-06-09 22:15:41 UTC
+- 最新运行日期：2026-06-10
+- 运行时间：2026-06-10 22:47:05 UTC
 - 运行状态：成功
-- 本次总论文数：20
-- 精读区：9
+- 本次总论文数：17
+- 精读区：6
 - 速读区：11
 
 ### 今日简报（AI）
-今日推荐阅读9篇精读论文，聚焦长上下文推理和检索增强生成优化。最值得关注的是MomentKV（9.0分）提出消除KV缓存驱逐中的方向性差距，以及LazyAttention（9.0分）通过延迟位置编码提升RAG效率。建议优先精读这两篇高评分论文，再速读速读列表中关于投机解码和向量量化的三篇8.0分工作以拓宽视野。
-- 详情：[/202606/09/README](/202606/09/README)
+今日共推荐17篇论文，精读6篇、速读11篇，聚焦推理效率与模型压缩。重点看本地MoE推理的CPU-GPU混合设计与扩散语言模型预填充方法（均9.0分）。建议优先阅读这两篇高分论文，并留意KV缓存压缩方向（速读中三篇8.0分均涉及）。
+- 详情：[/202606/10/README](/202606/10/README)
 
 ### 精读区论文标签
-1. [MomentKV: Closing the Directional Gap in KV Cache Eviction for Long-Context Inference](/202606/09/2606.01563v1-momentkv-closing-the-directional-gap-in-kv-cache-eviction-for-long-context-inference)  
+1. [Achieving Cloud-Grade SLOs for Local Mixture-of-Experts Inference through CPU-GPU Hybrid Design](/202606/10/2606.10493v1-achieving-cloud-grade-slos-for-local-mixture-of-experts-inference-through-cpu-gpu-hybrid-design)  
    标签：评分：9.0/10、query:inf-accel
-   evidence：KV缓存驱逐用于长上下文推理
-2. [LazyAttention: Efficient Retrieval-Augmented Generation with Deferred Positional Encoding](/202606/09/2606.04302v1-lazyattention-efficient-retrieval-augmented-generation-with-deferred-positional-encoding)  
+   evidence：流式预加载预填充（SLP）提升预填充吞吐量
+2. [Prefilling-dLLM: Predictive Prefilling for Long-Context Inference in Diffusion Language Models](/202606/10/2606.10537v1-prefilling-dllm-predictive-prefilling-for-long-context-inference-in-diffusion-language-models)  
    标签：评分：9.0/10、query:inf-accel
-   evidence：提出LazyAttention通过延迟位置编码实现零拷贝位置无关KV重用
-3. [AdaPLD: Adaptive Retrieval and Reuse for Efficient Model-Free Speculative Decoding](/202606/09/2606.05742v1-adapld-adaptive-retrieval-and-reuse-for-efficient-model-free-speculative-decoding)  
+   evidence：通过分块KV缓存和稀疏预填充优化长上下文LLM推理中的预填充阶段
+3. [K-Forcing: Joint Next-K-Token Decoding via Push-Forward Language Modeling](/202606/10/2606.10820v1-k-forcing-joint-next-k-token-decoding-via-push-forward-language-modeling)  
    标签：评分：9.0/10、query:inf-accel
-   evidence：无需草案模型的自适应检索与重用的推测解码
-4. [QCFuse: Query-Aware Cache Fusion via Compressed View for Efficient RAG Serving](/202606/09/2606.05875v1-qcfuse-query-aware-cache-fusion-via-compressed-view-for-efficient-rag-serving)  
+   evidence：联合下一个k令牌解码实现加速
+4. [CLP: Collocation-Length Prediction for Zero-Loss Adaptive Multi-Token Inference](/202606/10/2606.10935v1-clp-collocation-length-prediction-for-zero-loss-adaptive-multi-token-inference)  
    标签：评分：9.0/10、query:inf-accel
-   evidence：通过查询感知KV缓存融合优化RAG预填充阶段
-5. [WhiFlash: Accelerating Speculative Decoding with Token-Level Cross-Paradigm Routing](/202606/09/2606.07710v1-whiflash-accelerating-speculative-decoding-with-token-level-cross-paradigm-routing)  
+   evidence：零损失多令牌预测加速LLM解码
+5. [Express Language Modeling](/202606/10/2606.10944v1-express-language-modeling)  
    标签：评分：9.0/10、query:inf-accel
-   evidence：令牌级跨范式路由加速推测解码
-6. [FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention](/202606/09/2606.09079v1-flashmemory-deepseek-v4-lightning-index-ultra-long-context-via-lookahead-sparse-attention)  
-   标签：评分：9.0/10、query:inf-accel
-   evidence：通过前瞻稀疏注意力压缩KV缓存
-7. [Beyond FLOPs: Benchmarking Real Inference Acceleration of LLM Pruning under a GEMM-Centric Taxonomy](/202606/09/2606.09080v1-beyond-flops-benchmarking-real-inference-acceleration-of-llm-pruning-under-a-gemm-centric-taxonomy)  
-   标签：评分：9.0/10、query:inf-accel
-   evidence：在GEMM中心分类法下基准测试LLM剪枝的真实推理加速
-8. [From Rigid to Dynamic: Entropy-Guided Adaptive Inference for Long-Context LLMs](/202606/09/2606.09508v1-from-rigid-to-dynamic-entropy-guided-adaptive-inference-for-long-context-llms)  
-   标签：评分：9.0/10、query:inf-accel
-   evidence：基于熵引导的自适应KV缓存压缩方法用于长上下文LLM推理
-9. [End-to-End Context Compression at Scale](/202606/09/2606.09659v1-end-to-end-context-compression-at-scale)  
-   标签：评分：9.0/10、query:inf-accel
-   evidence：使用编码器-解码器压缩器大规模端到端上下文压缩减少KV缓存
+   evidence：用于预填充、KV缓存压缩和解码加速的通用工具
+6. [SAID: Accelerating Diffusion-Based Language Models via Scaffold-Aware Iterative Decoding](/202606/10/2606.04974v1-said-accelerating-diffusion-based-language-models-via-scaffold-aware-iterative-decoding)  
+   标签：评分：8.0/10、query:inf-accel
+   evidence：通过支架感知迭代解码重新分配令牌间计算以加速扩散语言模型解码
 
 ### 速读区论文标签
-1. [Draft Less, Retrieve More: Hybrid Tree Construction for Speculative Decoding](/202606/09/2605.20104v1-draft-less-retrieve-more-hybrid-tree-construction-for-speculative-decoding)  
+1. [Augmenting Attention with Exponentially Decaying Memory Improves Query-Aware KV Sparsity](/202606/10/2605.28640v1-augmenting-attention-with-exponentially-decaying-memory-improves-query-aware-kv-sparsity)  
    标签：评分：8.0/10、query:inf-accel
-   evidence：推测解码的混合树构建
-2. [EVA: Accelerating LLM Decoding via an Efficient Vector Quantization Architecture](/202606/09/2605.24144v1-eva-accelerating-llm-decoding-via-an-efficient-vector-quantization-architecture)  
+   evidence：增强查询感知KV稀疏性以提高推理效率
+2. [TwinQuant: Learnable Subspace Decomposition for 4-Bit LLM Quantization](/202606/10/2606.01556v1-twinquant-learnable-subspace-decomposition-for-4-bit-llm-quantization)  
    标签：评分：8.0/10、query:inf-accel
-   evidence：权重量化加速解码阶段
-3. [IndexMem: Learned KV-Cache Eviction with Latent Memory for Long-Context LLM Inference](/202606/09/2605.25475v1-indexmem-learned-kv-cache-eviction-with-latent-memory-for-long-context-llm-inference)  
+   evidence：LLM推理的4比特量化以减少内存和延迟
+3. [Rethinking LoRA Memory Through the Lens of KV Cache Compression](/202606/10/2606.05698v1-rethinking-lora-memory-through-the-lens-of-kv-cache-compression)  
    标签：评分：8.0/10、query:inf-accel
-   evidence：学习KV重要度预测以逐出，潜记忆防止遗忘
-4. [Cassandra: Enabling Reasoning LLMs at Edge via Self-Speculative Decoding](/202606/09/2605.26558v1-cassandra-enabling-reasoning-llms-at-edge-via-self-speculative-decoding)  
+   evidence：KV缓存压缩与LoRA内存的交互研究
+4. [FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention](/202606/10/2606.09079v2-flashmemory-deepseek-v4-lightning-index-ultra-long-context-via-lookahead-sparse-attention)  
    标签：评分：8.0/10、query:inf-accel
-   evidence：面向边缘设备的自推测解码
-5. [LLM Compression with Jointly Optimizing Architectural and Quantization choices](/202606/09/2606.04063v1-llm-compression-with-jointly-optimizing-architectural-and-quantization-choices)  
+   evidence：提出前瞻稀疏注意力，通过主动保留仅查询关键块来减少KV缓存内存。
+5. [UniSVQ: 2-bit Unified Scalar-Vector Quantization](/202606/10/2606.10520v1-unisvq-2-bit-unified-scalar-vector-quantization)  
+   标签：评分：8.0/10、query:inf-accel
+   evidence：2位统一标量-向量量化用于大模型推理加速
+6. [Supportive Token Revealing for Fast Diffusion Language Model Decoding](/202606/10/2606.04236v1-supportive-token-revealing-for-fast-diffusion-language-model-decoding)  
    标签：评分：7.0/10、query:inf-accel
-   evidence：大语言模型压缩以实现高效推理
-6. [Minimizing the Hidden Cost of Scales: Graph-Guided Ultra-Low-Bit Quantization for Large Language Models](/202606/09/2606.05429v1-minimizing-the-hidden-cost-of-scales-graph-guided-ultra-low-bit-quantization-for-large-language-models)  
+   evidence：通过支持性令牌揭示加速扩散语言模型解码
+7. [Recover-LoRA for Aggressive Quantization: Reclaiming Accuracy in 2-Bit Language Models via Low-Rank Adaptation with Knowledge Distillation on Synthetic Data](/202606/10/2606.04238v1-recover-lora-for-aggressive-quantization-reclaiming-accuracy-in-2-bit-language-models-via-low-rank-adaptation-with-knowledge-distillation-on-synthetic-data)  
    标签：评分：7.0/10、query:inf-accel
-   evidence：超低位量化加速大语言模型推理
-7. [Beyond Greedy Chunking: SLO-Aware Sliding-Window Scheduling for LLM Inference](/202606/09/2606.05933v1-beyond-greedy-chunking-slo-aware-sliding-window-scheduling-for-llm-inference)  
+   evidence：激进2比特量化提升LLM推理吞吐量
+8. [STaR-Quant: State-Time Consistent Post-Training Quantization for Diffusion Large Language Models](/202606/10/2606.04945v1-star-quant-state-time-consistent-post-training-quantization-for-diffusion-large-language-models)  
    标签：评分：7.0/10、query:inf-accel
-   evidence：面向服务等级协议的LLM推理调度加速
-8. [OffQ: Taming Structured Outliers in LLM Quantization by Offsetting](/202606/09/2606.07116v1-offq-taming-structured-outliers-in-llm-quantization-by-offsetting)  
+   evidence：面向扩散大语言模型的后训练量化加速推理
+9. [STaR-Quant: State-Time Consistent Post-Training Quantization for Diffusion Large Language Models](/202606/10/2606.04945v2-star-quant-state-time-consistent-post-training-quantization-for-diffusion-large-language-models)  
    标签：评分：7.0/10、query:inf-accel
-   evidence：低比特量化加速LLM推理
-9. [ProbeScale: Probing Analysis to Optimize Neural Scaling Laws for Efficient Small Language Model Inference](/202606/09/2606.01806v1-probescale-probing-analysis-to-optimize-neural-scaling-laws-for-efficient-small-language-model-inference)  
+   evidence：扩散大模型量化加速推理
+10. [Parallel Causal Associative Fields: Gated Sparse Memory for Long-Context Language Modeling](/202606/10/2606.10435v1-parallel-causal-associative-fields-gated-sparse-memory-for-long-context-language-modeling)  
    标签：评分：6.0/10、query:inf-accel
-   evidence：通过探针分析优化小语言模型推理效率
-10. [Depth-Attention: Cross-Layer Value Mixing for Language Models](/202606/09/2606.05014v1-depth-attention-cross-layer-value-mixing-for-language-models)  
+   evidence：面向长上下文的稀疏记忆机制用于高效推理
+11. [Dynamic Linear Attention](/202606/10/2606.10650v1-dynamic-linear-attention)  
    标签：评分：6.0/10、query:inf-accel
-   evidence：新的注意力机制跨层选择性混合值，是对标准注意力的改进，与FlashAttention和PagedAttention等注意力优化相关
-11. [Skip a Layer or Loop It? Learning Program-of-Layers in LLMs](/202606/09/2606.06574v1-skip-a-layer-or-loop-it-learning-program-of-layers-in-llms)  
-   标签：评分：6.0/10、query:inf-accel
-   evidence：动态跳过或循环层实现高效LLM推理
+   evidence：动态线性注意力降低LLM推理的二次复杂度
 
 
 <div class="dpr-home-promo-card">

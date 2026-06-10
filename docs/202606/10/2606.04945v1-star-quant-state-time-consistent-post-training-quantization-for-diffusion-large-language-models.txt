@@ -1,0 +1,724 @@
+Title: STaR-Quant: State-Time Consistent Post-Training Quantization for Diffusion Large Language Models
+
+URL Source: https://arxiv.org/pdf/2606.04945v1
+
+Published Time: Thu, 04 Jun 2026 01:13:03 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# STaR-Quant: State-Time Consistent Post-Training Quantization for Diffusion Large Language Models 
+
+Xin Yan 1 Aqiang Wang 1 Zhenglin Wan 2 Xingrui Yu 3* Ivor Tsang 31School of Artificial Intelligence, Beijing Normal University, Beijing, China 
+
+> 2
+
+Department of Computer Science, National University of Singapore, Singapore 
+
+> 3
+
+Centre for Frontier AI Research, Agency for Science, Technology and Research (A*STAR), Singapore 
+
+Abstract 
+
+Diffusion large language models (DLLMs) have recently emerged as a promising alter-native to autoregressive LLMs by generating text through iterative masked denoising with bidirectional context. However, their large model sizes and iterative denoising process introduce substantial memory and computa-tional overhead, motivating post-training quan-tization for efficient deployment. In this pa-per, we identify two key challenges for low-bit DLLM quantization: state-dependent activa-tion disparity and temporal error accumulation. Masked and unmasked tokens exhibit differ-ent activation distributions within each denois-ing step, while quantization errors can accumu-late across steps during iterative decoding. To address these challenges, we propose STaR-Quant , a state-time consistent PTQ framework for DLLMs. STaR-Quant introduces State-Guided Activation Transformation (SGAT) to assign masked and unmasked tokens to dif-ferent activation transformation spaces with a unified static weight-side transformation. It fur-ther introduces Temporal Attention Compen-sation (TAC) to correct the quantized attention representation via a lightweight block-diagonal affine mapping. Experiments on representative DLLMs demonstrate that STaR-Quant consis-tently improves low-bit weight-activation quan-tization over strong PTQ baselines, while deliv-ering up to 1.69 × speedup and 3.14 × memory saving over FP16 deployment. 
+
+1 Introduction 
+
+Diffusion large language models (DLLMs) have recently attracted increasing attention as a new paradigm for text generation (Nie et al., 2025; Ye et al., 2025). Inspired by diffusion processes, DLLMs formulate language generation as an itera-tive masked denoising task: a sequence is first par-tially or fully masked, and the model progressively   
+
+> *Corresponding author. Email:
+> yu_xingrui@a-star.edu.sg .
+
+recovers masked tokens through a reverse denois-ing process. Different from autoregressive LLMs that predict tokens strictly from left to right (Tou-vron et al., 2023; Bai et al., 2023; Grattafiori et al., 2024), DLLMs leverage bidirectional context at each denoising step and can recover multiple to-kens in parallel. This generation mechanism pro-vides flexible token refinement and stronger control over output structure, showing promising perfor-mance in general language modeling, reasoning, and code generation tasks (Nie et al., 2025; Ye et al., 2025). Despite these advantages, the efficient deploy-ment of DLLMs remains a challenge. The de-noising process usually requires multiple iterative steps to obtain high-quality outputs, and reducing the number of decoded tokens per step further in-creases the average computation cost. Meanwhile, recent DLLMs continue to scale to billions of pa-rameters, bringing substantial memory consump-tion and inference overhead. These characteristics make compression essential for deploying DLLMs on resource-constrained devices. Post-Training Quantization (PTQ), which quan-tizes weights and activations into low-precision formats, effectively reduces memory usage and computational overhead, achieving notable success in LLMs (Frantar et al., 2022; Xiao et al., 2023; Lin et al., 2024b; Ashkboos et al., 2024). However, directly applying these PTQ methods to DLLMs often leads to substantial performance degrada-tion, especially under aggressive low-bit weight-activation quantization (Lin et al., 2026). This per-formance drop reveals a clear mismatch between conventional PTQ assumptions and diffusion-style language inference, motivating a quantization framework tailored to the masked denoising pro-cess of DLLMs. In this work, we identify two key challenges for low-bit weight-activation quantization of DLLMs. The first challenge comes from state-dependent 
+
+> arXiv:2606.04945v1 [cs.LG] 3 Jun 2026 Figure 1: Activation distributions across token states and denoising steps in DLLMs. Masked and unmasked tokens show distinct activation patterns, while the dis-tributions also evolve over time, motivating state-time consistent quantization.
+
+activation disparity . During denoising, masked and unmasked tokens coexist in the same sequence. Masked tokens correspond to uncertain positions that need to be predicted, while unmasked tokens provide visible context. These two token states show different activation ranges and outlier pat-terns, as illustrated in Fig. 1. As a result, using a single activation transformation or a unified quan-tization space for all tokens fails to smooth both states effectively. The second challenge comes from temporal er-ror accumulation . In DLLMs, generation proceeds through iterative denoising, where the output of each step is reused in subsequent predictions. As a result, quantization errors are not confined to a single step, but can accumulate as the denoising process proceeds. Prior analysis shows that the ma-trix multiplication between the softmax attention map and value states is a critical error-prone op-eration under low-bit quantization (Xu and Yang, 2025). To address these challenges, we propose STaR-Quant , a state-time consistent PTQ framework for DLLMs. For the state dimension, we intro-duce State-Guided Activation Transformation (SGAT) , which assigns masked and unmasked tokens to different activation-side transformation spaces. Specifically, the hidden dimension is de-composed into shared and state-specific subspaces, allowing each token state to be smoothed in a more suitable quantization space. Meanwhile, the weight side maintains a unified static transfor-mation, avoiding duplicated transformed weights during inference. For the temporal dimension, we introduce Temporal Attention Compensation 
+
+(TAC). Instead of changing the attention compu-tation itself, TAC compensates its quantized out-put representation before it is fed into the atten-tion output projection. Specifically, TAC applies a lightweight block-wise affine mapping to align the quantized attention representation with its full-precision counterpart, thereby reducing error accu-mulation along the denoising trajectory. Our contributions are summarized as follows: • We identify two key challenges in low-bit DLLM quantization: state-dependent acti-vation disparity between masked and un-masked tokens, and temporal error accumula-tion across iterative denoising steps. • We propose State-Guided Activation Transfor-mation, which maps masked and unmasked activations into shared and state-specific trans-formation spaces while keeping a unified static weight-side transformation. • We introduce Temporal Attention Compen-sation, a closed-form block-wise affine com-pensation method that aligns quantized atten-tion representations with full-precision coun-terparts before the attention output projection. • Extensive experiments on representative DLLMs show that STaR-Quant improves low-bit weight-activation quantization perfor-mance over strong PTQ baselines. 
+
+2 Related Work 
+
+2.1 Large Language Diffusion Models. 
+
+Large Language Diffusion Models have emerged as an alternative to autoregressive language mod-eling by generating text through iterative denois-ing rather than left-to-right token prediction (Li et al., 2022; Austin et al., 2023; Lou et al., 2024; Sahoo et al., 2024). Early efforts explored both continuous and discrete diffusion formulations for text generation, including Diffusion-LM for con-trollable generation (Li et al., 2022) and D3PM for discrete state-space diffusion (Austin et al., 2023). Recent discrete diffusion language mod-els further improved language modeling quality through score-entropy objectives (Lou et al., 2024) and masked diffusion training (Sahoo et al., 2024). Building on these advances, large-scale diffusion LLMs such as DiffuLLaMA (Gong et al., 2025), LLaDA (Nie et al., 2025), and Dream (Ye et al., 2025) scale diffusion-based generation to billion-parameter models. DiffuLLaMA adapts pretrained autoregressive LMs into diffusion models (Gong et al., 2025), while LLaDA trains a diffusion LLM from scratch with a forward masking process and a reverse masked-token prediction objective (Nie et al., 2025). Dream 7B further demonstrates com-petitive performance on general, mathematical, and coding tasks (Ye et al., 2025). Despite their parallel decoding and bidirectional context modeling ad-vantages, DLLMs still face substantial deployment challenges due to iterative denoising, large model size, and high memory and computation cost (Gong et al., 2025; Nie et al., 2025; Ye et al., 2025). 
+
+2.2 Post-Training Quantization for LLMs 
+
+Post-training quantization (PTQ) has become a practical technique for compressing large language models, as it reduces memory footprint and infer-ence cost without expensive retraining. Existing LLMs PTQ methods can be broadly divided into weight-only quantization and weight-activation quantization. Weight-only methods quantize model weights while keeping activations in high precision. GPTQ (Frantar et al., 2022) uses second-order in-formation to compensate weight quantization er-rors, while AWQ (Lin et al., 2024b) preserves salient weights according to activation statistics. SmoothQuant (Xiao et al., 2023) shifts quantiza-tion difficulty from activations to weights through channel-wise scaling. Recent transformation-based methods improve low-bit quantization by smooth-ing activation distributions. QuaRot (Ashkboos et al., 2024) applies Hadamard rotations to obtain outlier-free representations, while DuQuant (Lin et al., 2024a) combines outlier-aware rotation and channel permutation to better distribute activation outliers. Although these PTQ methods are effec-tive for autoregressive LLMs, they do not explicitly consider the denoising process of DLLMs. Recent studies show that directly applying LLM-oriented PTQ methods to DLLMs still leads to clear degra-dation, especially under low-bit weight-activation quantization (Lin et al., 2026). Different from au-toregressive decoding, DLLMs contain masked and unmasked token states within each denois-ing step, and quantization errors may accumulate across iterative denoising steps. Therefore, effec-tive DLLM quantization requires handling both state-dependent activation disparity and temporal error accumulation. 
+
+3 Method 
+
+Overview. As shown in Fig. 2, STaR-Quant ad-dresses DLLM quantization from both the state and temporal dimensions. Given the intermediate sequence during denoising, we first index tokens ac-cording to their mask states. SGAT then transforms masked and unmasked activations into state-aware quantization spaces while sharing a unified trans-formed weight. After the attention computation, TAC compensates the quantized attention represen-tation before the output projection, improving its consistency with the full-precision path. The two components together form a state-time consistent quantization framework for DLLMs. 
+
+3.1 Preliminaries 
+
+We focus on post-training weight-activation quan-tization for DLLMs. For a linear layer with input activation X ∈ RL×d and weight W ∈ RC×d, the full-precision computation is 
+
+Y = XW ⊤. (1) Given bit-width b, uniform quantization maps a floating-point tensor X to a low-bit integer tensor: 
+
+Xint = clamp 
+
+ Xs
+
+
+
++ z, 0, 2b − 1
+
+
+
+, (2) where s and z are the quantization scale and zero point. The dequantized tensor is 
+
+ˆX = s(Xint − z). (3) For asymmetric quantization, s and z are computed as 
+
+s = Xmax − Xmin 
+
+2b − 1 , z =
+
+
+
+− Xmin 
+
+s
+
+
+
+. (4) Following common LLM PTQ settings, we use per-token quantization for activations and per-channel quantization for weights. We use Qa(·) and Qw(·)
+
+to denote activation and weight quantization, re-spectively. Then the quantized linear computation is approximated by 
+
+Y ≈ Qa(X)Qw(W ⊤). (5) Low-bit activation quantization is sensi-tive to outliers and non-uniform value ranges. Transformation-based quantization mitigates this issue by mapping activations to a smoother quantization space. For a transformation matrix P ,the linear computation can be rewritten as 
+
+Y = ( XP )( P −1W ⊤) ≈ Qa(XP )Qw(P −1W ⊤).
+
+(6) This transformation smooths activations before quantization while preserving the original compu-tation through the inverse transformation on the weight side. Token State Indexing 
+
+> Step t-1
+
+Denoising 
+
+Process             
+
+> Step t (input)
+> Step 1
+> Masked token (state = m)
+> Unmasked token (state =u)
+> [M] [M] [M] dog on .[M]
+> [M] grass dog on .A
+> . . .
+> runs grass dog on .A
+> mm
+> u
+> umu
+> Before SGAT:
+
+State-Guided Activation Transformation (SGAT) 
+
+> After SGAT:
+
+Temporal Attention Compensation (TAC)   
+
+> Deviation from FP
+> distribution
+> Quantized output
+> (at step t) Block-wise TAC (per step)
+> step)
+> After TAC: distribution
+> closer to FP
+> Compensated output
+> (at step t)
+
+Output 
+
+A dog 
+
+runs 
+
+on 
+
+grass. 
+
+> u
+
+Figure 2: Overview of STaR-Quant. Given a DLLM denoising sequence, tokens are first indexed by their mask states, i.e., masked and unmasked. State-Guided Activation Transformation (SGAT) assigns the two token states to shared and state-specific activation subspaces while keeping a unified weight-side transformation. Temporal Attention Compensation (TAC) further corrects the quantized attention representation before the output projection through block-wise affine compensation, reducing temporal quantization error along the denoising process. 
+
+3.2 State-Guided Activation Transformation 
+
+Transformation-based quantization typically cou-ples each activation-side transform with a corre-sponding weight-side transform. For DLLMs, how-ever, the same static weights process activations from different denoising states. Motivated by Free-Act (Liu et al., 2026), we therefore make the acti-vation transform state-conditioned: masked and un-masked tokens are routed to different transformed subspaces, while all tokens share one unified trans-formed weight. For a quantized linear layer at denoising step t,let Xt ∈ RL×d denote the input activation. SGAT transforms activations into smoother quantization spaces before low-bit quantization, with the goal of reducing state-dependent outliers in DLLM activa-tions. Since masked and unmasked tokens exhibit different activation patterns during denoising, we first split tokens according to their current states: 
+
+Its = {i | st,i = s}, Xst = Xt[Its], s ∈ { m, u },
+
+(7) where m and u denote masked and unmasked to-kens, respectively. The two activation groups are transformed and quantized separately, and their out-puts are later scattered back to the original token order. To smooth common and state-specific activation components separately, we construct the transfor-mation basis with shared and state-specific sub-spaces: 
+
+d = dsh + dm + du, P = [ Ush , U m, U u]. (8) Here, Ush ∈ Rd×dsh denotes the shared subspace basis, while Um ∈ Rd×dm and Uu ∈ Rd×du de-note the masked-specific and unmasked-specific bases. The shared basis captures common activa-tion components, whereas the state-specific bases absorb different outlier patterns from masked and unmasked tokens. Following this decomposition, the state-conditioned transformations are implemented by binary subspace gates: 
+
+Gm = diag( 1dsh , 1dm , 0du ),Gu = diag( 1dsh , 0dm , 1du ). (9) Equivalently, masked and unmasked tokens use 
+
+Pm = P G m = [ Ush , U m, 0] ,Pu = P G u = [ Ush , 0, U u]. (10) The zero-padded parts suppress the subspace as-signed to the other state, avoiding interference be-tween state-specific components. For state s, the activation-side transformation is 
+
+Φs(Xst ) = Xst P G s, s ∈ { m, u }. (11) Thus, both states share the common basis Ush ,while each state is smoothed in its own state-specific quantization subspace. On the weight side, we keep a unified static trans-formation to match the fixed linear weights used across denoising steps. Let Pe denote the weight-side transformation associated with the full basis 
+
+P . For an orthogonal basis, Pe = P ⊤; more gener-ally, Pe is the corresponding weight-side transform. For a linear layer with weight W , the transformed quantized weight is computed once: 
+
+fW = Qw(PeW ⊤). (12) The state-guided quantized projection is then 
+
+ˆY st = Qa(Φ s(Xst )) fW , s ∈ { m, u }. (13) Finally, ˆY mt and ˆY ut are scattered back to their original token positions to form ˆYt. In this way, SGAT uses state-conditioned activation transfor-mations to smooth activations, while keeping one shared transformed weight for all token states. The computation equivalence of this shared weight-side formulation is analyzed in Appendix A. 
+
+Optimization objective. Under the state-guided structure above, we optimize the transformation parameters by minimizing the layer-wise quantiza-tion error. For a denoising step t, let Y FP  
+
+> t
+
+denote the full-precision output of the linear layer, and let 
+
+ˆYt denote the output produced by the state-guided quantized projection. The objective is defined as 
+
+Lstate = Et Y FP  
+
+> t
+
+− ˆYt 
+
+> 2
+> F
+
+. (14) Since SGAT computes the quantized projection separately for masked and unmasked tokens, the objective can be equivalently written as 
+
+Lstate = Et
+
+X
+
+> s∈{ m,u }
+
+Y s, FP  
+
+> t
+
+− Qa(Xst P G s) fW 2 
+
+> F
+
+.
+
+(15) This optimization learns the shared and state-specific subspaces under a unified transformed weight, reducing the state-wise quantization error  
+
+> Figure 3: Temporal quantization error across denoising steps. We report the MSE between the quantized hidden state and the FP16 hidden state at each denoising step. STaR-Quant with TAC consistently reduces the accu-mulated error compared with the variant without TAC. QuaRot ∗denotes the setting where the softmax-value multiplication in attention is kept unquantized.
+
+introduced during DLLM denoising. After opti-mization, the weight-side transform is folded into the quantized weight, so inference only applies the state-conditioned activation transform followed by the quantized linear computation. More details are provided in Appendix B. 
+
+3.3 Temporal Attention Compensation 
+
+After SGAT mitigates state-dependent activation er-rors in quantized projections, DLLMs may still suf-fer from temporal error accumulation along the it-erative denoising trajectory. Prior analysis suggests that the softmax-value multiplication in attention is particularly sensitive to low-bit quantization. To address this remaining temporal error source, we in-troduce Temporal Attention Compensation (TAC), which corrects the quantized attention representa-tion before it enters the attention output projection, without modifying the attention computation itself. (More details are provided in Appendix C.) For an attention layer at denoising step t, let 
+
+ZFP  
+
+> t
+
+= Softmax 
+
+ QtK⊤
+
+> t
+
+√dh
+
+
+
+Vt (16) denote the full-precision output of the softmax-value multiplication, and let ˆZt be its quantized counterpart. Since DLLM generation proceeds through iterative denoising, the distribution shift in 
+
+ˆZt can affect subsequent predictions. TAC there-fore compensates ˆZt before the output projection, where the attention representation is directly con-sumed by the next linear operator. As shown in Fig. 3, this targeted compensation consistently re-duces the hidden-state error accumulated across denoising steps. 
+
+Block-wise affine compensation. A direct way to compensate ˆZt is to learn a dense affine mapping over the whole hidden dimension. However, such a mapping is expensive and unstable to estimate from limited reference activations in post-training quantization. A purely channel-wise correction is more stable but too restrictive, since the softmax-value multiplication mixes token information and induces channel correlations. To balance correction capacity and estimation stability, TAC adopts a block-wise affine mapping. We split the hidden dimension into B blocks with block size g and correct each block independently: 
+
+Ztac  
+
+> t,b
+
+= ˆZt,b M ⊤ 
+
+> b
+
++ 1d⊤ 
+
+> b
+
+, b = 1 , . . . , B. (17) Here, ˆZt,b is the b-th block of the quantized at-tention representation, Mb ∈ Rg×g is the block compensation matrix, and db ∈ Rg is the bias term. This block-diagonal form preserves local channel interactions within each block while avoiding the cost and unreliable estimation of a dense d × d
+
+mapping. 
+
+Closed-form estimation. To keep TAC lightweight, we estimate the compensation parameters by matching the first- and second-order statistics between full-precision and quantized attention representations. After SGAT is optimized, we collect paired activations (ZFP  
+
+> t
+
+, ˆZt) at the TAC insertion point. For each block, let (μFP  
+
+> b
+
+, ΣFP  
+
+> b
+
+) and 
+
+(μQ 
+
+> b
+
+, ΣQ 
+
+> b
+
+) denote the mean and covariance statistics of the full-precision and quantized representations, respectively. The compensation parameters are computed in closed form: 
+
+Mb = (Σ FP  
+
+> b
+
+) 12 (Σ Q 
+
+> b
+
++ λI )− 12 ,db = μFP  
+
+> b
+
+− MbμQ 
+
+> b
+
+. (18) The damping term λI stabilizes the inverse square-root of the quantized covariance. With this map-ping, Mb aligns the covariance structure and db
+
+restores the mean, making the compensated rep-resentation closer to the full-precision attention output before projection. Since the statistics are estimated from limited reference activations, the closed-form solution may contain noisy directions. We therefore further sta-bilize Mb by smoothing its singular values and shrinking the final matrix toward the identity. This prevents TAC from amplifying unreliable direc-tions while retaining its ability to correct temporal distribution shifts. Overall, TAC is inserted only before the attention output projection, providing a targeted and lightweight correction for temporal error accumulation in quantized DLLMs. 
+
+4 Experiments 
+
+4.1 Experimental settings 
+
+All experiments are conducted on NVIDIA A40 GPUs, unless otherwise specified. As STaR-Quant is an efficient post-training quantization (PTQ) framework, it eliminates the need for any fine-tuning. 
+
+Evaluated DLLMs and Quantization Base-lines. We conduct comprehensive evaluations on three recent diffusion-based language mod-els, LLaDA-8B (Nie et al., 2025), LLaDA-1.5-8B (Zhu et al., 2025) and Dream 7B (Ye et al., 2025). Our main baselines include vanilla RTN and three PTQ approaches for LLMs: AWQ (Lin et al., 2024b), QuaRot (Ashkboos et al., 2024) and DLLMQuant (Xu and Yang, 2025). For calibra-tion, we use 128 segments sampled from the Wino-Grande dataset. In the case of QuaRot, we follow the implementation strategy of its official reposi-tory and apply GPTQ, a Hessian-based weight com-pensation method, to adjust the quantized weights. 
+
+Evaluation Benchmarks. We evaluate the per-formance of STaR-Quant across three task cat-egories, following the evaluation setup of the LLaDA paper: 1) General knowledge and rea-soning tasks, including TruthfulQA-MC2 (Lin et al., 2022), ARC-Challenge (Clark et al., 2018), HellaSwag (Zellers et al., 2019), Wino-Grande (Sakaguchi et al., 2019), PIQA (Bisk et al., 2019), MMLU (Hendrycks et al., 2021), and C-EVAL (Huang et al., 2023), where accuracy is used as the evaluation metric; 2) Mathematical reason-ing tasks, represented by GSM8K (Cobbe et al., 2021), which assesses multistep reasoning ability; and 3) Code generation tasks, represented by Hu-manEval (Chen et al., 2021), which evaluates code generation capability. Together, these benchmarks provide a comprehensive assessment of our method from multiple perspectives. 
+
+4.2 Main Results 
+
+The results in Table 1 lead to three observations. First, STaR-Quant consistently outperforms ex-isting PTQ methods. Under W4A4 quantiza-Table 1: Results of RTN, AWQ, QuaRot, DLLMQuant and our STaR-Quant with 4-bit weight and activation quantization among 9 tasks on LLADA-8B, LLADA-1.5-8B, DREAM-7B. DLLMQuant + denotes DLLMQuant based on AWQ, and DLLMQuant ++ denotes DLLMQuant based on QuaRot.                                                                                                                                                                                                                             
+
+> Method Evaluation Benchmarks Avg. Truth. Arc. Hella. Wino. PIQA MMLU C-EVAL Hum. GSM8K
+> LLADA-8B
+> FP 47.49 44.03 54.06 74.90 74.65 65.85 69.54 32.92 67.48 58.99 RTN 40.45 41.83 45.40 64.72 67.95 49.26 57.95 14.02 16.56 44.23 AWQ 40.87 42.92 46.14 66.88 69.43 51.22 58.43 20.10 36.88 48.09 DLLMQuant +41.53 43.44 46.51 67.87 70.12 51.72 59.38 22.13 40.66 49.26 QuaRot 42.53 44.20 49.76 69.85 70.75 55.96 56.32 25.33 44.57 51.03 DLLMQuant ++ 43.53 44.18 51.00 71.85 73.94 57.77 61.22 28.92 56.25 54.29
+> STaR-Quant 49.12 44.23 52.75 72.92 73.85 62.95 64.56 35.98 57.29 57.07
+> LLADA-1.5-8B
+> FP 47.20 88.50 74.70 74.80 74.86 66.00 70.05 49.40 83.30 69.86 RTN 39.51 81.77 56.82 65.27 66.91 48.88 58.96 23.44 36.56 53.12 AWQ 40.96 82.22 66.84 67.93 69.32 51.12 60.03 30.07 57.95 58.49 DLLMQuant +42.14 83.38 70.09 68.69 70.22 51.63 61.28 32.44 59.55 59.94 QuaRot 43.21 84.23 65.34 69.55 70.17 56.23 57.66 37.33 65.86 61.06 DLLMQuant ++ 43.87 84.18 69.20 71.74 73.58 57.27 60.04 44.58 74.30 64.31
+> STaR-Quant 48.77 85.12 72.43 72.09 73.36 63.29 64.34 46.53 76.45 66.93
+> DREAM-7B
+> FP 49.76 59.80 73.30 74.50 75.66 69.50 64.89 57.90 77.20 66.94 RTN 41.25 54.34 58.32 64.52 66.26 51.51 49.89 28.90 30.82 49.53 AWQ 43.66 57.82 65.57 67.13 68.96 55.50 53.27 33.14 48.98 54.89 DLLMQuant +44.14 58.38 66.93 68.66 69.53 57.63 54.21 35.12 51.14 56.19 QuaRot 47.58 58.18 67.13 70.05 70.36 69.50 53.19 34.48 59.20 58.85 DLLMQuant ++ 47.86 59.43 70.14 71.54 72.09 69.50 55.89 44.50 66.17 61.90
+> STaR-Quant 48.72 59.76 71.32 72.98 74.34 69.37 58.79 47.43 69.57 63.59
+
+tion, STaR-Quant achieves the best average per-formance on all three DLLMs. It improves over DLLMQuant ++ by 2.78, 2.62, and 1.69 aver-age points on LLaDA-8B, LLaDA-1.5-8B, and Dream-7B, respectively. Compared with RTN, AWQ, and QuaRot, the improvement is more sig-nificant, showing that directly applying conven-tional LLM quantization methods is insufficient for dLLMs. Second, STaR-Quant better preserves general knowledge capability. On benchmarks such as TruthfulQA, ARC, HellaSwag, Wino-Grande, PIQA, MMLU, and C-EVAL, STaR-Quant achieves strong performance across different mod-els. In particular, the improvements on MMLU and C-EVAL indicate that our method better main-tains multi-domain knowledge and language under-standing under low-bit quantization. Third, STaR-Quant is more robust on reasoning and genera-tion tasks. GSM8K and HumanEval are more sensitive to quantization errors because they re-quire multi-step reasoning and precise code genera-tion. STaR-Quant consistently improves these tasks over DLLMQuant ++ . For example, on LLaDA-8B, HumanEval increases from 28.92 to 35.98 and GSM8K increases from 56.25 to 57.29. On Dream-7B, HumanEval improves from 44.50 to 47.43 and GSM8K improves from 66.17 to 69.57. These gains suggest that state-guided activation transfor-mation and temporal attention compensation help preserve the intermediate representations required by complex generation tasks. Additional W8A8 quantization results are provided in Appendix D. 
+
+4.3 Ablation Study 
+
+Table 2 reports the contribution of each compo-nent in STaR-Quant. The full method achieves the best quantized average performance of 57.07, demonstrating the effectiveness of combining state-aware transformation and temporal compensation. When TAC is removed, the average score drops to 55.43, indicating that compensating the quantized attention representation before the output projec-tion is important for suppressing temporal error accumulation. When SGAT is removed, the score decreases to 56.39, showing that State-Guided Ac-tivation Transformation helps reduce the activation mismatch between masked and unmasked tokens. These results suggest that the two modules are com-plementary: SGAT improves state-wise activation consistency, while TAC improves temporal atten-tion consistency. 
+
+Table 2: Component ablation of STaR-Quant under W4A4 quantization on LLaDA-8B. Avg. denotes the average accuracy over nine tasks. ∆ ↓ denotes the accu-racy drop compared with FP. 
+
+Method Avg. ∆ ↓
+
+FP 58.99 0.00 STaR-Quant w/o TAC 55.43 3.56 STaR-Quant w/o SGAT 56.39 2.60 STaR-Quant 57.07 1.92 
+
+We further study the effect of the TAC block size in Table 3. The block size controls the trade-off between the expressive capacity and the estimation stability of the block-wise affine compensation. A small block size, such as g = 4 or g = 8 , provides limited cross-channel modeling ability and leads to clearly lower average performance. Increasing the block size improves the result, and the best perfor-mance is achieved at g = 16 , reaching an average accuracy of 57.07. However, further increasing the block size to g = 32 or g = 64 slightly degrades the performance, which suggests that overly large blocks may introduce less stable covariance esti-mation under limited calibration data. Therefore, we use g = 16 as the default TAC block size, as it provides the best balance between compensation capacity and calibration robustness. 
+
+Table 3: Effect of TAC block size.            
+
+> Block size g4816 32 64 Avg. 52.48 54.66 57.07 56.39 56.03
+
+4.4 Memory and Speedup Inference Speedup. To evaluate the practical ef-ficiency of STaR-Quant, we follow the measure-ment protocol and W4A4 kernel implementation used in (Ashkboos et al., 2024). As shown in 
+
+Table 4: Speedup and memory saving of three DLLMs, compared between 4-bit implementation and FP16.                          
+
+> MODEL Speed (Tokens/s) Memory (GB) FP Quant SpeedUp FP Quant Mem. Sav.
+> LLADA 34.59 57.07 1.65 15.89 5.20 3.05
+> LLADA-1.5 35.55 58.30 1.64 15.88 5.20 3.05
+> DREAM 23.27 39.33 1.69 13.95 4.44 3.14
+
+Table 4, STaR-Quant consistently accelerates in-ference across different DLLMs. Specifically, it achieves 1.65 ×, 1.64 ×, and 1.69 × speedup on LLaDA, LLaDA-1.5, and Dream, respectively. The average speedup reaches 1.66 ×, showing that the proposed state-guided transformation and TAC do not introduce prohibitive runtime overhead under W4A4 execution. 
+
+Memory Consumption. We further measure the peak GPU memory usage during inference. As reported in Table 4, STaR-Quant significantly reduces memory consumption for all evaluated DLLMs. For LLaDA and LLaDA-1.5, the memory usage decreases from about 15.9GB to 5.2GB, cor-responding to 3.05 × memory saving. For Dream, the memory usage is reduced from 13.95GB to 4.44GB, achieving 3.14 × memory saving. These results demonstrate that STaR-Quant effectively lowers both computational and memory costs, mak-ing low-bit DLLM deployment more practical while maintaining strong accuracy retention. 
+
+5 Conclusion 
+
+We present STaR-Quant , a state-time consistent PTQ framework for low-bit weight-activation quan-tization of DLLMs. It targets two DLLM-specific challenges: state-dependent activation disparity be-tween masked and unmasked tokens, and temporal error accumulation during iterative denoising. To address them, SGAT maps different token states into state-aware activation transformation spaces while sharing a unified transformed weight, and TAC compensates the quantized attention represen-tation before the output projection to reduce tem-poral quantization error. Experiments on LLaDA, LLaDA-1.5, and Dream show that STaR-Quant pre-serves accuracy better than strong PTQ baselines, with clear gains on knowledge, reasoning, and code generation benchmarks. Ablations and temporal er-ror analysis validate both components, demonstrat-ing state-time consistency as an effective principle for efficient DLLM quantization. Limitations 
+
+STaR-Quant mainly focuses on W4A4 post-training quantization for representative masked-denoising DLLMs. Although experiments on LLaDA, LLaDA-1.5, and Dream demonstrate con-sistent improvements, further evaluation on more diffusion architectures, model scales, and denois-ing schedules is needed to fully validate its gen-erality. Moreover, more aggressive settings such as 3-bit or 2-bit weight-activation quantization re-main challenging and may require stronger state-aware transformation or temporal compensation strategies. Another limitation lies in system-level deployment. TAC introduces a lightweight block-wise affine compensation before the attention out-put projection, and SGAT applies state-conditioned activation transformation. While both components are efficient in principle, their practical speedup can be further improved with dedicated fused ker-nels. Finally, our current state modeling is based on predefined masked and unmasked tokens. Ex-tending STaR-Quant to finer-grained token states, confidence-aware states, or multimodal diffusion models is an interesting direction for future work. 
+
+References 
+
+Saleh Ashkboos, Amirkeivan Mohtashami, Maximil-ian L. Croci, Bo Li, Pashmina Cameron, Martin Jaggi, Dan Alistarh, Torsten Hoefler, and James Hensman. 2024. Quarot: Outlier-free 4-bit inference in rotated llms. Preprint , arXiv:2404.00456. Jacob Austin, Daniel D. Johnson, Jonathan Ho, Daniel Tarlow, and Rianne van den Berg. 2023. Structured denoising diffusion models in discrete state-spaces. 
+
+Preprint , arXiv:2107.03006. Jinze Bai, Shuai Bai, Yunfei Chu, Zeyu Cui, Kai Dang, Xiaodong Deng, Yang Fan, Wenbin Ge, Yu Han, Fei Huang, Binyuan Hui, Luo Ji, Mei Li, Junyang Lin, Runji Lin, Dayiheng Liu, Gao Liu, Chengqiang Lu, Keming Lu, and 29 others. 2023. Qwen technical report. Preprint , arXiv:2309.16609. Yonatan Bisk, Rowan Zellers, Ronan Le Bras, Jianfeng Gao, and Yejin Choi. 2019. Piqa: Reasoning about physical commonsense in natural language. Preprint ,arXiv:1911.11641. Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, Alex Ray, Raul Puri, Gretchen Krueger, Michael Petrov, Heidy Khlaaf, Girish Sastry, Pamela Mishkin, Brooke Chan, Scott Gray, and 39 others. 2021. Evaluating large language models trained on code. Preprint , arXiv:2107.03374. Peter Clark, Isaac Cowhey, Oren Etzioni, Tushar Khot, Ashish Sabharwal, Carissa Schoenick, and Oyvind Tafjord. 2018. Think you have solved question answering? try arc, the ai2 reasoning challenge. 
+
+Preprint , arXiv:1803.05457. Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, Christopher Hesse, and John Schulman. 2021. Training verifiers to solve math word prob-lems. Preprint , arXiv:2110.14168. Elias Frantar, Saleh Ashkboos, Torsten Hoefler, and Dan Alistarh. 2022. Gptq: Accurate post-training quantization for generative pre-trained transformers. 
+
+arXiv preprint arXiv:2210.17323 .Shansan Gong, Shivam Agarwal, Yizhe Zhang, Ji-acheng Ye, Lin Zheng, Mukai Li, Chenxin An, Peilin Zhao, Wei Bi, Jiawei Han, Hao Peng, and Lingpeng Kong. 2025. Scaling diffusion language models via adaptation from autoregressive models. Preprint ,arXiv:2410.17891. Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schel-ten, Alex Vaughan, Amy Yang, Angela Fan, Anirudh Goyal, Anthony Hartshorn, Aobo Yang, Archi Mi-tra, Archie Sravankumar, Artem Korenev, Arthur Hinsvark, and 542 others. 2024. The llama 3 herd of models. Preprint , arXiv:2407.21783. Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, and Jacob Steinhardt. 2021. Measuring massive multitask language under-standing. Preprint , arXiv:2009.03300. Yuzhen Huang, Yuzhuo Bai, Zhihao Zhu, Junlei Zhang, Jinghan Zhang, Tangjun Su, Junteng Liu, Chuancheng Lv, Yikai Zhang, Jiayi Lei, Yao Fu, Maosong Sun, and Junxian He. 2023. C-eval: A multi-level multi-discipline chinese evaluation suite for foundation models. Preprint , arXiv:2305.08322. Xiang Lisa Li, John Thickstun, Ishaan Gulrajani, Percy Liang, and Tatsunori B. Hashimoto. 2022. Diffusion-lm improves controllable text generation. Preprint ,arXiv:2205.14217. Haokun Lin, Haobo Xu, Yichen Wu, Jingzhi Cui, Ying-tao Zhang, Linzhan Mou, Linqi Song, Zhenan Sun, and Ying Wei. 2024a. Duquant: Distributing outliers via dual transformation makes stronger quantized llms. Preprint , arXiv:2406.01721. Haokun Lin, Haobo Xu, Yichen Wu, Ziyu Guo, Ren-rui Zhang, Zhichao Lu, Ying Wei, Qingfu Zhang, and Zhenan Sun. 2026. Quantization meets dllms: A systematic study of post-training quantization for diffusion llms. Preprint , arXiv:2508.14896. Ji Lin, Jiaming Tang, Haotian Tang, Shang Yang, Wei-Ming Chen, Wei-Chen Wang, Guangxuan Xiao, Xingyu Dang, Chuang Gan, and Song Han. 2024b. Awq: Activation-aware weight quantization for on-device llm compression and acceleration. Proceed-ings of Machine Learning and Systems , 6:87–100. Stephanie Lin, Jacob Hilton, and Owain Evans. 2022. Truthfulqa: Measuring how models mimic human falsehoods. Preprint , arXiv:2109.07958. Xiaohao Liu, Xiaobo Xia, Manyi Zhang, Ji-Fu Li, Xi-anzhi Yu, Fei Shen, Xiu Su, See-Kiong Ng, and Tat-Seng Chua. 2026. Freeact: Freeing activations for llm quantization. Preprint , arXiv:2603.01776. Aaron Lou, Chenlin Meng, and Stefano Ermon. 2024. Discrete diffusion modeling by estimating the ratios of the data distribution. Preprint , arXiv:2310.16834. Shen Nie, Fengqi Zhu, Zebin You, Xiaolu Zhang, Jingyang Ou, Jun Hu, Jun Zhou, Yankai Lin, Ji-Rong Wen, and Chongxuan Li. 2025. Large language dif-fusion models. Preprint , arXiv:2502.09992. Subham Sekhar Sahoo, Marianne Arriola, Yair Schiff, Aaron Gokaslan, Edgar Marroquin, Justin T Chiu, Alexander Rush, and Volodymyr Kuleshov. 2024. Simple and effective masked diffusion language mod-els. Preprint , arXiv:2406.07524. Keisuke Sakaguchi, Ronan Le Bras, Chandra Bhagavat-ula, and Yejin Choi. 2019. Winogrande: An adver-sarial winograd schema challenge at scale. Preprint ,arXiv:1907.10641. Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timothée Lacroix, Baptiste Rozière, Naman Goyal, Eric Hambro, Faisal Azhar, Aurelien Rodriguez, Armand Joulin, Edouard Grave, and Guillaume Lample. 2023. Llama: Open and efficient foundation language models. Preprint ,arXiv:2302.13971. Guangxuan Xiao, Ji Lin, Mickael Seznec, Hao Wu, Julien Demouth, and Song Han. 2023. Smoothquant: Accurate and efficient post-training quantization for large language models. In International Conference on Machine Learning , pages 38087–38099. PMLR. Chen Xu and Dawei Yang. 2025. Dllmquant: Quantiz-ing diffusion-based large language models. Preprint ,arXiv:2508.14090. Jiacheng Ye, Zhihui Xie, Lin Zheng, Jiahui Gao, Zirui Wu, Xin Jiang, Zhenguo Li, and Lingpeng Kong. 2025. Dream 7b: Diffusion large language models. 
+
+Preprint , arXiv:2508.15487. Rowan Zellers, Ari Holtzman, Yonatan Bisk, Ali Farhadi, and Yejin Choi. 2019. Hellaswag: Can a machine really finish your sentence? Preprint ,arXiv:1905.07830. Fengqi Zhu, Rongzhen Wang, Shen Nie, Xiaolu Zhang, Chunwei Wu, Jun Hu, Jun Zhou, Jianfei Chen, Yankai Lin, Ji-Rong Wen, and Chongxuan Li. 2025. Llada 1.5: Variance-reduced preference optimiza-tion for large language diffusion models. Preprint ,arXiv:2505.19223. 
+
+A Computation Consistency of SGAT 
+
+In this section, we show that State-Guided Ac-tivation Transformation (SGAT) can use state-conditioned activation transformations while keep-ing a unified weight-side transformation. For clar-ity, we omit the layer index and consider a linear layer with input activation X ∈ RL×d and weight 
+
+W ∈ RC×d. Let Xm and Xu denote the activa-tions of masked and unmasked tokens, respectively. SGAT constructs a full transformation basis 
+
+P = [ Ush , U m, U u] ∈ Rd×d, (19) where Ush , Um, and Uu correspond to the shared, masked-specific, and unmasked-specific subspaces. We assume that these bases form an orthonormal decomposition, i.e., 
+
+P ⊤P = P P ⊤ = I. (20) For a general invertible basis, P ⊤ can be replaced by P −1 without changing the following analysis. The state-conditioned gates are defined as 
+
+Gm = diag( 1dsh , 1dm , 0du ),Gu = diag( 1dsh , 0dm , 1du ). (21) Thus, masked tokens use the shared and masked-specific subspaces, while unmasked tokens use the shared and unmasked-specific subspaces. For state 
+
+s ∈ { m, u }, the activation-side transformation is 
+
+Φs(Xs) = XsP G s. (22) The weight side, however, uses only one unified transformation: 
+
+fW = P ⊤W ⊤. (23) We now show when this state-conditioned com-putation preserves the original full-precision linear projection. Define the inactive gate of state s as 
+
+G⊥ 
+
+> s
+
+= I − Gs. (24) If the activation of state s has no component in its inactive subspace after transformation, i.e., 
+
+XsP G ⊥ 
+
+> s
+
+= 0 , (25) then 
+
+XsP = XsP (Gs + G⊥ 
+
+> s
+
+) = XsP G s. (26) Using P P ⊤ = I, the original linear computation can be rewritten as 
+
+XsW ⊤ = XsP P ⊤W ⊤
+
+= XsP (Gs + G⊥ 
+
+> s
+
+)P ⊤W ⊤
+
+= XsP G sP ⊤W ⊤
+
+= Φ s(Xs)fW . 
+
+(27) Therefore, under the ideal subspace allocation con-dition in Eq. 25, SGAT preserves the original linear computation while using different activation-side transformations for different token states and a sin-gle shared weight-side transformation. In practice, Eq. 25 may not hold exactly. The deviation introduced by suppressing the inactive subspace can be written as 
+
+∆s = XsW ⊤ − Φs(Xs)fW = XsP G ⊥ 
+
+> s
+
+P ⊤W ⊤.
+
+(28) This term measures the information leakage into the subspace assigned to the other token state. SGAT reduces this deviation by optimizing the transformation basis with the layer-wise reconstruc-tion objective: 
+
+Lstate = Et
+
+X
+
+> s∈{ m,u }
+
+Y s, FP  
+
+> t
+
+− ˆY st 
+
+> 2
+> F
+
+,
+
+ˆY st = Qa(Xst P G s) Qw
+
+
+
+P ⊤W ⊤
+
+.
+
+(29) This objective jointly accounts for the subspace allocation error and the quantization error. As a re-sult, the learned transformation encourages masked and unmasked activations to occupy their corre-sponding subspaces while sharing the same trans-formed weight. Importantly, the weight-side transform P ⊤W ⊤
+
+is independent of the token state. Thus, SGAT does not require maintaining separate transformed weights for masked and unmasked tokens. After op-timization, the transformed weight can be precom-puted and quantized once, while state-conditioned gates are applied only on the activation side during inference. 
+
+B Implementation Details 
+
+For each quantized linear layer, SGAT first parti-tions the input tokens into masked and unmasked groups according to their current denoising states. Let d denote the hidden dimension. We con-struct an orthogonal transformation basis P =[Ush , U m, U u], where Ush is shared by both token states, while Um and Uu are reserved for masked and unmasked tokens, respectively. Following the subspace allocation strategy of FreeAct, we set the state-specific dimensions to dm = du = d/ 32 by default and assign the remaining dimensions to the shared subspace, i.e., dsh = d − dm − du. This al-location keeps most transformation capacity in the shared subspace, which captures common activa-tion components across token states, while reserv-ing a small number of dimensions for state-specific outlier patterns. In this way, SGAT can adapt to the distributional mismatch between masked and un-masked tokens without duplicating the transformed weights. For initialization, we sample a random Gaus-sian matrix and orthogonalize it to obtain the ini-tial transformation basis P . During calibration, 
+
+P is constrained to remain orthogonal, so that the weight-side transformation can be represented by P ⊤ and folded into the linear weight. Given the state gates Gm = diag( 1dsh , 1dm , 0du ) and 
+
+Gu = diag( 1dsh , 0dm , 1du ), masked tokens use 
+
+Pm = P G m and unmasked tokens use Pu = P G u.The zero-padded inactive subspaces prevent one to-ken state from using the state-specific dimensions assigned to the other state. We optimize SGAT in a layer-wise post-training calibration manner. The original model parame-ters are frozen, and only the transformation basis is updated. For each layer, we collect paired full-precision and quantized activations from the cali-bration set. The full-precision output is computed by the original linear layer, while the quantized output is computed using the state-conditioned ac-tivation transformation and the shared transformed quantized weight. We minimize the reconstruction objective in Eq. (15) using AdamW with learn-ing rate 1 × 10 −3, batch size 4, and 15 calibration epochs. This objective jointly encourages masked and unmasked activations to occupy their corre-sponding subspaces and reduces the quantization error under the unified weight-side transformation. After calibration, the weight-side transforma-tion is precomputed and folded into the quantized weight as Wf = Qw(P ⊤W ⊤). Therefore, SGAT does not maintain separate weights for masked and unmasked tokens during inference. At runtime, we only apply the state-conditioned activation gates according to the token mask states, quantize the transformed activations, multiply them with the shared quantized weight, and scatter the outputs back to the original token order. C Detailed Implementation of Temporal Attention Compensation 
+
+In this section, we provide the implementation de-tails of Temporal Attention Compensation (TAC). TAC is inserted after the softmax-value multiplica-tion in self-attention and before the attention output projection. Therefore, for an attention layer, the compensated representation is computed as 
+
+Softmax( QK ⊤/pdh)V → TAC → Wo,
+
+where Wo denotes the attention output projection. This insertion point allows TAC to correct the quan-tized attention representation directly before it is consumed by the following linear projection. 
+
+Block-wise statistics. Let ˆZt ∈ RN ×C denote the quantized attention representation collected at the TAC insertion point, where N is the total num-ber of calibration tokens after flattening the batch and sequence dimensions, and C is the hidden di-mension. To avoid estimating a full C × C covari-ance matrix, we split the hidden dimension into B
+
+non-overlapping blocks with block size g, where 
+
+C = Bg . By default, we set g = 16 . If C is not divisible by the default block size, we choose the largest block size not exceeding 16 that divides C.For each layer and each block b, we collect paired full-precision and quantized attention repre-sentations, 
+
+ZFP  
+
+> b
+
+, ˆZQ 
+
+> b
+
+∈ RN ×g.
+
+The full-precision pass disables activation and weight quantizers, while keeping the learned trans-formation modules enabled. The quantized pass enables quantization and uses the same calibration samples. We then estimate the population mean and covariance for each block: 
+
+μFP  
+
+> b
+
+= 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+zFP  
+
+> i,b
+
+,
+
+ΣFP  
+
+> b
+
+= 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+zFP  
+
+> i,b
+
+zFP  
+
+> i,b
+> ⊤
+
+− μFP  
+
+> b
+
+μFP 
+
+> b
+> ⊤
+
+.
+
+(30) and similarly, 
+
+μQ 
+
+> b
+
+, ΣQ
+
+> b
+
+for the quantized representation. 
+
+Damped covariance matching. TAC estimates a block-wise affine mapping that aligns the first- and second-order statistics of the quantized representa-tion with its full-precision counterpart. Since the covariance estimated from a small calibration set can be ill-conditioned, we add a damping term to the quantized covariance: 
+
+λb = ρ · max Tr(Σ Q 
+
+> b
+
+)
+
+g , ϵ 
+
+!
+
+,
+
+where ρ is the damping coefficient and ϵ is a small constant for numerical stability. We use 
+
+ρ = 3 × 10 −4 and ϵ = 10 −8 by default. The damped quantized covariance is 
+
+eΣQ 
+
+> b
+
+= Σ Q 
+
+> b
+
++ λbI. 
+
+The initial compensation matrix is computed by covariance matching: 
+
+Mb =  ΣFP 
+
+> b
+
+1/2 eΣQ
+
+> b
+
+−1/2
+
+.
+
+Matrix square roots and inverse square roots are computed through symmetric eigendecomposition. Specifically, for a positive semi-definite matrix A,we compute 
+
+Ap = Q diag  max( λi, 10 −12 )p Q⊤,
+
+where A = Qdiag( λi)Q⊤. The eigenvalue clamp-ing prevents numerical instability caused by very small eigenvalues. 
+
+Singular value smoothing. The closed-form co-variance matching solution can overfit noisy direc-tions in the calibration set. To stabilize the com-pensation matrix, we smooth the singular values of 
+
+Mb. Let 
+
+Mb = Ubdiag( σb)V ⊤
+
+> b
+
+be the singular value decomposition of Mb, and let 
+
+¯σb = 1
+
+g
+
+> g
+
+X
+
+> i=1
+
+σb,i 
+
+be the mean singular value in block b. We replace each singular value by 
+
+σ′ 
+
+> b,i
+
+= (1 − η)σb,i + η¯σb,
+
+where η controls the strength of singular value smoothing. We use η = 0 .15 by default. The smoothed matrix is then reconstructed as 
+
+M sv  
+
+> b
+
+= Ubdiag( σ′
+
+> b
+
+)V ⊤ 
+
+> b
+
+.
+
+When η = 0 , singular value smoothing is disabled. Table 5: Model performance under 8-bit weight and activation quantization.                                                                           
+
+> Model Method Truth. Arc. Hella. Wino. PIQA MMLU C-EVAL Hum. GSM8K Avg.
+> LLADA FP 47.49 44.03 54.06 74.90 74.65 65.85 69.54 32.92 67.48 58.99 STaR-Quant 48.56 44.25 54.40 68.72 74.23 64.36 67.87 36.09 65.74 58.25 LLADA-1.5 FP 47.20 88.50 74.70 74.80 74.86 66.00 70.05 49.4 83.30 69.86 STaR-Quant 49.72 86.50 74.31 73.98 74.24 65.79 68.96 47.55 79.37 68.94 DREAM FP 49.76 59.80 73.30 74.50 75.66 69.50 64.89 57.90 77.2 66.94 STaR-Quant 49.02 60.28 72.89 73.50 74.23 70.11 62.89 51.76 73.44 65.35
+
+Identity shrinkage. We further shrink the smoothed compensation matrix toward the iden-tity matrix: 
+
+M final  
+
+> b
+
+= (1 − α)M sv  
+
+> b
+
++ αI. 
+
+We set α = 0 .55 by default. This shrinkage pre-vents TAC from over-correcting unreliable covari-ance directions. When α = 0 , TAC fully uses the covariance matching solution; when α = 1 , the compensation matrix degenerates to identity and only mean correction remains. 
+
+Bias estimation. After obtaining the final block-wise compensation matrix, we compute the bias term by matching the mean of the compensated quantized representation to the full-precision repre-sentation: 
+
+db = μFP  
+
+> b
+
+− M final  
+
+> b
+
+μQ 
+
+> b
+
+.
+
+Therefore, for a token representation zb in block b,TAC applies the following affine correction under the column-vector notation: 
+
+zTAC  
+
+> b
+
+= M final  
+
+> b
+
+zb + db.
+
+In implementation, activations are stored in row-major format, and the equivalent computation is 
+
+ZTAC  
+
+> b
+
+= ˆZQ 
+
+> b
+
+M final  
+
+> b
+> ⊤
+
++ 1db⊤.
+
+Default hyperparameters. Unless otherwise specified, TAC uses the following hyperparam-eters: block size g = 16 , damping coefficient 
+
+ρ = 3 × 10 −4, singular value smoothing coefficient 
+
+η = 0 .15 , identity shrinkage coefficient α = 0 .55 ,and at most 64 calibration samples for estimating the statistics. TAC is estimated after SGAT calibra-tion, and its parameters are fixed during inference. 
+
+D Additional Results 
+
+Table 5 reports additional results under W8A8 quantization. Compared with the FP models, STaR-Quant preserves most of the original performance across all three dLLMs. Specifically, the average scores only drop from 58.99 to 58.25 on LLaDA, from 69.86 to 68.94 on LLaDA-1.5, and from 66.94 to 65.35 on Dream. The small average degradation indicates that STaR-Quant remains stable under a less aggressive quantization setting. Moreover, STaR-Quant even slightly improves over FP on sev-eral benchmarks, such as TruthfulQA and ARC on LLaDA, TruthfulQA on LLaDA-1.5, and ARC and MMLU on Dream. These results suggest that the proposed state-time consistent quantization frame-work can effectively retain model capability un-der W8A8 quantization, with only minor accuracy degradation on average. 
+
+E Additional Visualizations 
+
+Fig. 4 visualizes the layer-wise activation distribu-tion of the attention output input ( attn_out ) at de-noising step t = 0 for LLaDA-8B before applying SGAT. The untransformed activations show clear layer-dependent variations and pronounced outlier patterns, indicating that the attention representa-tions are difficult to quantize directly under low-bit weight-activation quantization. These observations further support the need for state-guided activation transformation, which maps masked and unmasked token activations into more suitable quantization spaces before the quantized linear projection. Figure 4: Layer-wise overview of attn_out at t = 0 for LLaDA-8B.

@@ -1,0 +1,706 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-10T22:38:10.977378+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 11,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 18,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2606.10493v1",
+      "source": "arxiv",
+      "title": "Achieving Cloud-Grade SLOs for Local Mixture-of-Experts Inference through CPU-GPU Hybrid Design",
+      "abstract": "Local deployment of large Mixture-of-Experts (MoE) models falls short of the service quality achieved in cloud-scale environments, even under low-concurrency workloads. We identify four key gaps in local MoE inference: reliance on capacity-reduced models (quantized, distilled, rerouted), inability to meet 30-second TTFT for long prefills (more than 12K), sub-baseline decode throughput (under 20 tokens/s), and poor concurrency under mixed prefill-decode and batched decode workloads. We present a CPU-GPU hybrid system that achieves cloud-level SLOs on dual-socket commodity CPUs and consumer GPUs by (1) stream-loading prefill (SLP), boosting prefill throughput to 1,200 tokens/s and enabling 32K prompts within 30 seconds; (2) distributed SLP (DSLP) with SmallEP expert parallelism, reaching 1,800 tokens/s and 45K prompts in 30 seconds on two RTX 5090s; (3) intra-node prefill-decode disaggregation with zero-copy shared weights and a dual-batch attention-MoE overlap scheme, sustaining concurrency with under 15 percent latency increase and 50 percent throughput gains; (4) an AVX-512-optimized FP8 GEMV kernel, enabling native CPU FP8 inference while delivering 4-5x lower CPU latency; and (5) fine-grained CPU parallelism that attains 28 tokens/s on INT4 DeepSeek-V3 and 21.5 tokens/s on intact FP8 V3. Evaluations show our system delivers cloud-level QoS for flagship MoE models on consumer CPU-GPU platforms, reshaping local deployment with intact, original-precision inference and enabling high-quality, cost-effective access without datacenter infrastructure.",
+      "authors": [
+        "Wenxin Wang",
+        "Yule Hou",
+        "Yu Ji",
+        "Peng Qu",
+        "Youhui Zhang"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC",
+        "cs.AI",
+        "cs.LG",
+        "cs.NE"
+      ],
+      "published": "2026-06-09T07:17:34+00:00",
+      "link": "https://arxiv.org/pdf/2606.10493v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "stream-loading prefill (SLP) boosts prefill throughput",
+      "llm_evidence_cn": "流式预加载预填充（SLP）提升预填充吞吐量",
+      "llm_evidence": "流式预加载预填充（SLP）提升预填充吞吐量",
+      "canonical_evidence": "流式预加载预填充（SLP）提升预填充吞吐量",
+      "llm_tldr_en": "CPU-GPU hybrid system with stream-loading prefill achieves cloud-grade SLOs for local MoE inference.",
+      "llm_tldr_cn": "本地部署混合专家模型在预填充时延和吞吐方面远逊于云端。本文提出CPU-GPU混合系统，通过流式预加载预填充（SLP）将预填充吞吐提升至1200 tokens/s，使32K长度提示在30秒内完成。同时采用分布式解码等技术，在消费级硬件上实现云级服务质量。",
+      "llm_tldr": "本地部署混合专家模型在预填充时延和吞吐方面远逊于云端。本文提出CPU-GPU混合系统，通过流式预加载预填充（SLP）将预填充吞吐提升至1200 tokens/s，使32K长度提示在30秒内完成。同时采用分布式解码等技术，在消费级硬件上实现云级服务质量。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "optimization of prefilling stage in large language model inference",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.10537v1",
+      "source": "arxiv",
+      "title": "Prefilling-dLLM: Predictive Prefilling for Long-Context Inference in Diffusion Language Models",
+      "abstract": "Diffusion large language models (dLLMs) re-encode the entire prefix at every denoising step, causing recomputation that scales   quadratically with context length and becomes prohibitive for long-context scenarios. We propose Prefilling-dLLM, a training-free   prefill-decode disaggregation framework for dLLMs that partitions the prefix into N chunks, caches their KV representations once,   and selects the top-K most relevant chunks with intra-chunk token sparsity for decoding, showing that sparse prefilling can   outperform dense attention while reducing per-step complexity from quadratic in the full sequence length to quadratic only in the   decode length. On LongBench and InfiniteBench, Prefilling-dLLM achieves state-of-the-art quality among dLLM acceleration methods,   and an attention kernel that parallelizes decoding over the non-contiguously cached chunk KV yields 9.1--28.0x speedup at 8K--32K   contexts. We further show that beginning-of-sequence tokens prepended to each chunk act as periodic attention anchors that eliminate   the lost-in-the-middle phenomenon. Code is available at https://github.com/menik1126/Prefilling-dLLM.",
+      "authors": [
+        "Jing Xiong",
+        "Qi Han",
+        "Shansan Gong",
+        "Yunta Hsieh",
+        "Chengyue Wu",
+        "Chaofan Tao",
+        "Chenyang Zhao",
+        "Ngai Wong"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-06-09T08:06:22+00:00",
+      "link": "https://arxiv.org/pdf/2606.10537v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Prefilling optimization for long-context LLM inference via chunked KV caching",
+      "llm_evidence_cn": "通过分块KV缓存和稀疏预填充优化长上下文LLM推理中的预填充阶段",
+      "llm_evidence": "通过分块KV缓存和稀疏预填充优化长上下文LLM推理中的预填充阶段",
+      "canonical_evidence": "通过分块KV缓存和稀疏预填充优化长上下文LLM推理中的预填充阶段",
+      "llm_tldr_en": "Prefilling-dLLM proposes a training-free prefill-decode disaggregation framework for diffusion LLMs that caches KV representations of prefix chunks and selects top-K relevant chunks with intra-chunk sparsity, reducing per-step complexity from quadratic in full sequence to quadratic in decode length.",
+      "llm_tldr_cn": "扩散语言模型在长上下文场景下因每步重新编码整个前缀而导致计算成本平方增长。本文提出Prefilling-dLLM，一种无需训练的前缀-解码分离框架，将前缀分割成多个块并缓存其KV表示，在解码时仅选择最相关的Top-K块并结合块内令牌稀疏性进行注意力计算。在LongBench和InfiniteBench上，该方法以更低的复杂度实现了最先进的性能，显著加速了长上下文推理。",
+      "llm_tldr": "扩散语言模型在长上下文场景下因每步重新编码整个前缀而导致计算成本平方增长。本文提出Prefilling-dLLM，一种无需训练的前缀-解码分离框架，将前缀分割成多个块并缓存其KV表示，在解码时仅选择最相关的Top-K块并结合块内令牌稀疏性进行注意力计算。在LongBench和InfiniteBench上，该方法以更低的复杂度实现了最先进的性能，显著加速了长上下文推理。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "optimization of prefilling stage in large language model inference",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.10820v1",
+      "source": "arxiv",
+      "title": "K-Forcing: Joint Next-K-Token Decoding via Push-Forward Language Modeling",
+      "abstract": "Autoregressive (AR) language modeling is the dominant paradigm for text generation, yet its sequential token-by-token decoding makes inference memory-bound and inefficient. Existing acceleration approaches, such as speculative decoding and diffusion language models, can yield speedups under certain conditions but do not directly address high-load batch serving--the scenario most critical for industrial-scale deployment. We introduce K-Forcing, a push-forward language modeling paradigm for joint next-k-token decoding. K-Forcing distills an existing AR model into a conditional push-forward mapping--one that transforms independent uniform noise variables into a joint sample of multiple future tokens in a single forward pass. This design preserves fixed-length outputs, reuses the AR teacher backbone, and remains compatible with standard AR serving infrastructure. We train this mapping via progressive self-forcing distillation, which gradually expands the prediction window while enabling the student to closely match the sequence distribution of the AR teacher. We evaluate K-Forcing on LM1B and OpenWebText using a standard causal Transformer backbone. When aggressively configured to generate k = 4 tokens per forward pass, K-Forcing delivers approximately 2.4-3.5x speedup across different batch sizes, while incurring modest quality degradation relative to its AR teacher. As inference increasingly dominates the lifetime compute cost of modern LLMs, K-Forcing offers a promising route toward accelerating AR generation under real-world high-load deployment.",
+      "authors": [
+        "Zhiwei Tang",
+        "Yuanyu He",
+        "Yizheng Han",
+        "Wangbo Zhao",
+        "Jiasheng Tang",
+        "Fan Wang",
+        "Bohan Zhuang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-06-09T13:02:00+00:00",
+      "link": "https://arxiv.org/pdf/2606.10820v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "joint next-k-token decoding for acceleration",
+      "llm_evidence_cn": "联合下一个k令牌解码实现加速",
+      "llm_evidence": "联合下一个k令牌解码实现加速",
+      "canonical_evidence": "联合下一个k令牌解码实现加速",
+      "llm_tldr_en": "K-Forcing introduces a push-forward language modeling paradigm for joint next-k-token decoding, distilling an AR model to generate multiple future tokens in one forward pass, preserving fixed computational cost.",
+      "llm_tldr_cn": "针对自回归解码的串行效率瓶颈，提出K-Forcing推前语言建模范式，将自回归模型蒸馏为条件推前映射，在单次前向传播中联合生成多个未来令牌。该方法保持固定计算开销，特别适合高负载批量服务场景。实验表明，K-Forcing在多种任务上实现显著解码加速，且不牺牲生成质量。",
+      "llm_tldr": "针对自回归解码的串行效率瓶颈，提出K-Forcing推前语言建模范式，将自回归模型蒸馏为条件推前映射，在单次前向传播中联合生成多个未来令牌。该方法保持固定计算开销，特别适合高负载批量服务场景。实验表明，K-Forcing在多种任务上实现显著解码加速，且不牺牲生成质量。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "multi-token prediction for accelerating decoding in large language models",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.10935v1",
+      "source": "arxiv",
+      "title": "CLP: Collocation-Length Prediction for Zero-Loss Adaptive Multi-Token Inference",
+      "abstract": "Large language model inference is bottlenecked by autoregressive decoding, where each token requires a full forward pass. Multi-token prediction (MTP) offers a promising acceleration path, but existing approaches suffer from a fundamental architectural flaw: the MTP head for the first token competes with the backbone's own language model (LM) head, leading to severe quality degradation when predictions are accepted. We identify this head-backbone competition as the root cause of repetitive and incoherent outputs in prior MTP-based acceleration methods. To address this, we propose Backbone-as-Architect, a design principle where the backbone LM head always generates the first token, and MTP heads are responsible only for subsequent tokens. Building on this principle, we introduce CLP (Collocation-Length Predictor), a lightweight span-level decision layer that predicts how many additional tokens can be safely accepted at each decoding step. CLP uses only a single linear layer (4.6K--7.7K parameters), replacing the over-engineered 1M-parameter gate networks used in prior work. Experiments on Qwen2.5 models (0.5B, 1.5B, 7B) show that CLP achieves 1.20x--1.29x speedup on 1.5B and 1.14x--1.20x on 7B, with zero quality degradation (repetition ratio < 0.02), while gate-based approaches fail to accelerate (1.07x) or produce severely degraded outputs (repetition ratio > 0.5%). We further demonstrate that shorter prediction horizons (k=2) recover 24% higher MTP head accuracy on large models, establishing a scaling-aware design principle. We identify MTP head prediction accuracy as the binding constraint on acceleration and establish a clear roadmap for future improvements.",
+      "authors": [
+        "Xuezhen Xie",
+        "Zhiqiang Zhou"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-06-09T14:45:12+00:00",
+      "link": "https://arxiv.org/pdf/2606.10935v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-token prediction for zero-loss LLM decoding acceleration",
+      "llm_evidence_cn": "零损失多令牌预测加速LLM解码",
+      "llm_evidence": "零损失多令牌预测加速LLM解码",
+      "canonical_evidence": "零损失多令牌预测加速LLM解码",
+      "llm_tldr_en": "CLP introduces Backbone-as-Architect principle for multi-token prediction, where backbone generates first token and MTP heads generate subsequent tokens, avoiding head-backbone competition and enabling zero-loss acceleration.",
+      "llm_tldr_cn": "多令牌预测（MTP）是加速自回归解码的有效方法，但现有方法中MTP头与骨干LM头竞争导致质量下降。本文识别出头-骨干竞争是重复和不连贯输出的根源，提出Backbone-as-Architect设计原则，让骨干LM头始终生成第一个令牌，MTP头只负责后续令牌。基于此构建CLP方法，实现了无损加速，在多个基准上显著提升解码速度而不损失生成质量。",
+      "llm_tldr": "多令牌预测（MTP）是加速自回归解码的有效方法，但现有方法中MTP头与骨干LM头竞争导致质量下降。本文识别出头-骨干竞争是重复和不连贯输出的根源，提出Backbone-as-Architect设计原则，让骨干LM头始终生成第一个令牌，MTP头只负责后续令牌。基于此构建CLP方法，实现了无损加速，在多个基准上显著提升解码速度而不损失生成质量。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "multi-token prediction for accelerating decoding in large language models",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.10944v1",
+      "source": "arxiv",
+      "title": "Express Language Modeling",
+      "abstract": "We introduce a new tool, Express, for converting a non-causal attention approximation into a causal approximation with matching approximation guarantees. When combined with the state-of-the-art Thinformer approximation, Express improves upon the best known causal attention guarantees, delivering $\\log^{3/2}(n)/s$ approximation error with only $O(s)$ memory and $O(s^2 \\log^2(n))$ compression overhead for a sequence of length $n$. We pair these developments with an efficient I/O-aware Triton implementation, demonstrate substantial speedups over FlashAttention 2, and use Express to overcome four resource bottlenecks in the language modeling pipeline: long-context prefill, KV cache compression, long-form memory-constrained decoding, and long-form compute-constrained decoding.",
+      "authors": [
+        "Albert Gong",
+        "Annabelle Michael Carrell",
+        "Raaz Dwivedi",
+        "Lester Mackey"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.DS",
+        "math.ST",
+        "stat.ME",
+        "stat.ML"
+      ],
+      "published": "2026-06-09T14:48:56+00:00",
+      "link": "https://arxiv.org/pdf/2606.10944v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "universal tool for prefill, KV cache compression, and decoding acceleration",
+      "llm_evidence_cn": "用于预填充、KV缓存压缩和解码加速的通用工具",
+      "llm_evidence": "用于预填充、KV缓存压缩和解码加速的通用工具",
+      "canonical_evidence": "用于预填充、KV缓存压缩和解码加速的通用工具",
+      "llm_tldr_en": "Express converts non-causal attention approximations to causal ones, achieving speedups over FlashAttention 2 and addressing long-context prefill, KV cache compression, memory-constrained decoding, and compute-constrained decoding.",
+      "llm_tldr_cn": "该论文提出Express工具，可将非因果注意力近似转换为因果近似，并保证近似误差。结合Thinformer获得更优因果注意力保证，并在Triton中实现I/O感知实现。在长上下文预填充、KV缓存压缩、内存受限解码和计算受限解码四个关键瓶颈上均取得显著加速，超越FlashAttention 2。为语言建模管道的资源瓶颈提供了综合解决方案。",
+      "llm_tldr": "该论文提出Express工具，可将非因果注意力近似转换为因果近似，并保证近似误差。结合Thinformer获得更优因果注意力保证，并在Triton中实现I/O感知实现。在长上下文预填充、KV缓存压缩、内存受限解码和计算受限解码四个关键瓶颈上均取得显著加速，超越FlashAttention 2。为语言建模管道的资源瓶颈提供了综合解决方案。",
+      "llm_tags": [
+        "query:inf-accel:composite"
+      ],
+      "matched_query_tag": "query:inf-accel:composite",
+      "matched_query_text": "Papers central to 请帮我查找大模型推理加速的论文，包括prefilling优化方面，针对流行的FlashAttention和PagedAttention和LMDeploy等优缺点进行了详细讲解。decoding优化方面，主要有多token预测、降低kv cache等方法。, especially work that connects or combines: e; large language model inference acceleration; optimization of prefilling stage in large language model inference; multi-token prediction for accelerating decoding in large language models; KV cache compression techniques for reducing memory in large language model inference; optimization of decoding stage in large language model inference; eagle based speculative decoding for LLM inference acceleration; advanced techniques for prefilling optimization in large language model inference; recent progress in FlashAttention and PagedAttention for LLM speedup; multi token prediction and KV cache reduction methods for fast LLM decoding.",
+      "matched_requirement_id": "req-composite-inf-accel",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.04974v1",
+      "source": "arxiv",
+      "title": "SAID: Accelerating Diffusion-Based Language Models via Scaffold-Aware Iterative Decoding",
+      "abstract": "Diffusion large language models (DLLMs) enable non-autoregressive generation by iteratively denoising corrupted token sequences with bidirectional context. Despite their ability to update multiple positions in parallel, inference remains costly due to the many denoising steps required for high-quality generation. We propose SAID, a Scaffold-Aware Iterative Decoding framework that accelerates DLLMs by reallocating computation across tokens. SAID first spends denoising computation on scaffold tokens to establish the coarse semantic structure, and then completes predictable detail tokens with fewer steps. We further adapt SAID to block-wise diffusion decoding and introduce Confidence-Hierarchical Layered Generation (CHLG), which assigns additional steps only to low-confidence tokens. Experiments on LLaDA-8B and LLaDA 1.5 across math, coding, and knowledge benchmarks show that SAID significantly accelerates DLLM inference with a maximum speedup of 9.1x while maintaining competitive performance. Our code is publicly available: https://github.com/TH-AI-Lab-PKU/SAID.",
+      "authors": [
+        "Na Li",
+        "Chengda Wang",
+        "Mingju Gao",
+        "Hao Tang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-06-03T14:56:42+00:00",
+      "link": "https://arxiv.org/pdf/2606.04974v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Accelerating diffusion LLM decoding by reallocating computation across tokens",
+      "llm_evidence_cn": "通过支架感知迭代解码重新分配令牌间计算以加速扩散语言模型解码",
+      "llm_evidence": "通过支架感知迭代解码重新分配令牌间计算以加速扩散语言模型解码",
+      "canonical_evidence": "通过支架感知迭代解码重新分配令牌间计算以加速扩散语言模型解码",
+      "llm_tldr_en": "SAID accelerates diffusion LLMs by focusing denoising computation on scaffold tokens first to establish coarse structure, then completing detail tokens with fewer steps, reducing overall decoding steps.",
+      "llm_tldr_cn": "扩散语言模型虽能并行生成但需要大量去噪步骤。本文提出SAID框架，通过支架感知的迭代解码，首先对支架令牌进行充分去噪以建立语义骨架，然后以更少步骤完成细节令牌。进一步提出置信度分层生成（CHLG）进行块级加速。实验表明，该方法在保持生成质量的同时显著减少了推理步骤。",
+      "llm_tldr": "扩散语言模型虽能并行生成但需要大量去噪步骤。本文提出SAID框架，通过支架感知的迭代解码，首先对支架令牌进行充分去噪以建立语义骨架，然后以更少步骤完成细节令牌。进一步提出置信度分层生成（CHLG）进行块级加速。实验表明，该方法在保持生成质量的同时显著减少了推理步骤。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "optimization of decoding stage in large language model inference",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2605.28640v1",
+      "source": "arxiv",
+      "title": "Augmenting Attention with Exponentially Decaying Memory Improves Query-Aware KV Sparsity",
+      "abstract": "Efficient inference is critical for long-context language models, where attention computation and KV-cache access dominate the cost. Recent work RAT+, introduces a recurrence-augmented attention backbone that enables flexible dilated attention at inference time. In this paper, we investigate whether this exponentially decaying memory can also improve existing query-aware sparse inference methods. Using representative methods including Quest, MoBA, and SnapKV, we show that RAT+ consistently improves accuracy over standard attention across sparse budgets on eight needle-in-a-haystack tasks. We validate these gains both on the released checkpoints from the RAT+ paper and on OLMo2-7B, which we continue pretraining with the added memory module for 10B tokens. Finally, we propose two hypotheses explaining why this memory module benefits query-aware sparse inference and design targeted experiments to support them.",
+      "authors": [
+        "Xiuying Wei",
+        "Caglar Gulcehre"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-05-27T15:46:19+00:00",
+      "link": "https://arxiv.org/pdf/2605.28640v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "improves query-aware KV sparsity for efficient inference",
+      "llm_evidence_cn": "增强查询感知KV稀疏性以提高推理效率",
+      "llm_evidence": "增强查询感知KV稀疏性以提高推理效率",
+      "canonical_evidence": "增强查询感知KV稀疏性以提高推理效率",
+      "llm_tldr_en": "Augmenting attention with exponentially decaying memory boosts query-aware KV sparsity methods, improving accuracy on long-context tasks.",
+      "llm_tldr_cn": "该论文针对长上下文语言模型推理中注意力计算和KV缓存访问成本高的问题，提出用指数衰减记忆增强注意力骨干，以改进现有查询感知稀疏推理方法（如Quest、MoBA、SnapKV）。实验表明，在八项长文本任务上，RAT+在多种稀疏预算下均能一致提升准确率，并通过续预训练验证了其有效性，为高效KV缓存压缩提供了新思路。",
+      "llm_tldr": "该论文针对长上下文语言模型推理中注意力计算和KV缓存访问成本高的问题，提出用指数衰减记忆增强注意力骨干，以改进现有查询感知稀疏推理方法（如Quest、MoBA、SnapKV）。实验表明，在八项长文本任务上，RAT+在多种稀疏预算下均能一致提升准确率，并通过续预训练验证了其有效性，为高效KV缓存压缩提供了新思路。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "KV cache compression techniques for reducing memory in large language model inference",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.28640v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.04236v1",
+      "source": "arxiv",
+      "title": "Supportive Token Revealing for Fast Diffusion Language Model Decoding",
+      "abstract": "Discrete diffusion language models can generate text efficiently by updating multiple masked positions in parallel, but this parallelism introduces a quality-latency trade-off. Aggressive decoding may commit mutually dependent tokens too early, while conservative decoding requires many denoising steps. Existing methods address this tension by deciding which tokens are safe to reveal using confidence or dependency criteria. However, avoiding unsafe commits does not necessarily make the remaining masked sequence easy to decode, since uncertain tokens may depend on masked tokens, creating a bottleneck for denoising steps. We propose AXON, a training-free module that can be added on top of existing parallel decoding strategies for diffusion language models. Rather than replacing the base decoder, AXON monitors the remaining uncertain masked tokens and intervenes only when their current state suggests that additional context is needed. It then shifts the criterion from which tokens are safest to reveal to which confident reveals would best support later denoising. AXON selects anchors, confident masked tokens that uncertain positions attend to, using attention, uncertainty, and confidence signals. Experiments on reasoning and code-generation benchmarks across multiple diffusion language models show that AXON improves the quality-latency trade-off of existing parallel decoders, often reducing the number of function evaluations while maintaining or improving accuracy.",
+      "authors": [
+        "Giries Abu Ayoub",
+        "Mario Barbara",
+        "Lluís Pastor-Pérez",
+        "Tanja Bien",
+        "Aneesh Barthakur",
+        "Alaa Maalouf",
+        "Loay Mualem"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-06-02T21:35:54+00:00",
+      "link": "https://arxiv.org/pdf/2606.04236v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Fast diffusion LM decoding via supportive token revealing",
+      "llm_evidence_cn": "通过支持性令牌揭示加速扩散语言模型解码",
+      "llm_evidence": "通过支持性令牌揭示加速扩散语言模型解码",
+      "canonical_evidence": "通过支持性令牌揭示加速扩散语言模型解码",
+      "llm_tldr_en": "AXON is a training-free module for diffusion LMs that selectively reveals tokens to avoid unsafe commits and reduce denoising steps, improving decoding speed.",
+      "llm_tldr_cn": "离散扩散语言模型在并行解码时面临质量与延迟的权衡。现有方法仅避免不安全提交，但未解决不确定令牌的依赖瓶颈。本文提出AXON，一个无需训练的模块，通过识别并优先揭示支持性令牌来简化剩余掩码序列的解码难度，从而在保持低延迟的同时提升生成质量。",
+      "llm_tldr": "离散扩散语言模型在并行解码时面临质量与延迟的权衡。现有方法仅避免不安全提交，但未解决不确定令牌的依赖瓶颈。本文提出AXON，一个无需训练的模块，通过识别并优先揭示支持性令牌来简化剩余掩码序列的解码难度，从而在保持低延迟的同时提升生成质量。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "optimization of decoding stage in large language model inference",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.10435v1",
+      "source": "arxiv",
+      "title": "Parallel Causal Associative Fields: Gated Sparse Memory for Long-Context Language Modeling",
+      "abstract": "Transformers achieve strong language modeling performance by providing direct token-to-token communication paths, but causal self-attention scales quadratically with context length. Recurrent and state-space models reduce this cost, yet compress history into sequentially updated fixed-size states. This paper studies a third primitive: a parallel content-addressed memory over causal successor records. The proposed Parallel Causal Associative Field (PCAF) writes local records from a context window into hash buckets, retrieves a bounded candidate set for the current query, forms a sparse cache distribution over successor tokens, and mixes that cache with a parametric local language model through a learned gate. The resulting model maintains sparse long-context access while avoiding a single fixed recurrent state bottleneck. We evaluate PCAF under full autoregressive pretraining on WikiText-103 and PG-19 using a distributed Google Cloud TPU v4-32 pod. At 303M parameters and context length T = 2048, PCAF-semantic reaches 36.31 perplexity on WikiText-103 and 52.45 perplexity on PG-19, compared with 47.49 and 53.84 for a matched dense Transformer. PCAF-semantic simultaneously processes 0.61-0.62M tokens/s across the TPU pod, versus 0.43M tokens/s for dense and local attention baselines. Supporting 41M-parameter multi-seed sweeps and single-GPU component ablations show that the associative cache, retrieval capacity, and learned gate materially affect the speed-quality trade-off.",
+      "authors": [
+        "Muhammad Ahmed"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-06-09T05:23:17+00:00",
+      "link": "https://arxiv.org/pdf/2606.10435v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "sparse memory for efficient long-context modeling",
+      "llm_evidence_cn": "面向长上下文的稀疏记忆机制用于高效推理",
+      "llm_evidence": "面向长上下文的稀疏记忆机制用于高效推理",
+      "canonical_evidence": "面向长上下文的稀疏记忆机制用于高效推理",
+      "llm_tldr_en": "Parallel Causal Associative Fields (PCAF) propose a parallel content-addressed sparse memory for long-context language modeling, achieving linear-time inference with gated mixing of local LM.",
+      "llm_tldr_cn": "为突破长上下文建模中自注意力二次复杂度瓶颈，该论文提出并行因果关联场（PCAF），通过哈希桶写入局部记录并检索稀疏候选集，结合门控机制与参数化语言模型混合。该方法在保持模型性能的同时实现了线性时间推理，为长序列高效建模提供了新范式。",
+      "llm_tldr": "为突破长上下文建模中自注意力二次复杂度瓶颈，该论文提出并行因果关联场（PCAF），通过哈希桶写入局部记录并检索稀疏候选集，结合门控机制与参数化语言模型混合。该方法在保持模型性能的同时实现了线性时间推理，为长序列高效建模提供了新范式。",
+      "llm_tags": [
+        "query:inf-accel:composite"
+      ],
+      "matched_query_tag": "query:inf-accel:composite",
+      "matched_query_text": "Papers central to 请帮我查找大模型推理加速的论文，包括prefilling优化方面，针对流行的FlashAttention和PagedAttention和LMDeploy等优缺点进行了详细讲解。decoding优化方面，主要有多token预测、降低kv cache等方法。, especially work that connects or combines: e; large language model inference acceleration; optimization of prefilling stage in large language model inference; multi-token prediction for accelerating decoding in large language models; KV cache compression techniques for reducing memory in large language model inference; optimization of decoding stage in large language model inference; eagle based speculative decoding for LLM inference acceleration; advanced techniques for prefilling optimization in large language model inference; recent progress in FlashAttention and PagedAttention for LLM speedup; multi token prediction and KV cache reduction methods for fast LLM decoding.",
+      "matched_requirement_id": "req-composite-inf-accel",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2606.01556v1",
+      "source": "arxiv",
+      "title": "TwinQuant: Learnable Subspace Decomposition for 4-Bit LLM Quantization",
+      "abstract": "4-bit quantization reduces the memory footprint and latency of large language model inference, but its aggressive precision reduction can severely degrade accuracy. Prior methods address this by decomposing each weight matrix into two components (e.g., via singular value decomposition) and quantizing them separately, assigning the bulk of values to a low-precision residual component while handling outliers with a high-precision low-rank component. However, such decompositions are designed to minimize the real-valued energy of the residual, rather than the post-quantization error of the residual and low-rank components. We propose TwinQuant, a 4-bit quantization framework that learns quantization-friendly decomposed subspaces and jointly reshapes both the low-rank and residual components. TwinQuant learns component-specific transformations via a joint optimization over the Stiefel and general linear manifolds, flattening their distributions and reducing dynamic-range imbalance. To enable efficient end-to-end execution, we further design a fused dual-component kernel that pipelines the two-stage low-rank computation on-chip and merges both components with a single epilogue, avoiding intermediate global-memory traffic. Across LLaMA3 and Qwen3 models, TwinQuant preserves near-FP16 accuracy and delivers up to $1.8\\times$ end-to-end speedup over an FP16 baseline.",
+      "authors": [
+        "Haodong Wang",
+        "Junjie Liu",
+        "Zicong Hong",
+        "Qianli Liu",
+        "Jian Lin",
+        "Song Guo",
+        "Xu Chen"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC"
+      ],
+      "published": "2026-06-01T02:02:12+00:00",
+      "link": "https://arxiv.org/pdf/2606.01556v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "4-bit quantization for LLM inference to reduce memory and latency",
+      "llm_evidence_cn": "LLM推理的4比特量化以减少内存和延迟",
+      "llm_evidence": "LLM推理的4比特量化以减少内存和延迟",
+      "canonical_evidence": "LLM推理的4比特量化以减少内存和延迟",
+      "llm_tldr_en": "TwinQuant learns quantization-friendly decomposed subspaces for 4-bit LLM quantization, achieving better accuracy-efficiency trade-off than prior SVD-based methods.",
+      "llm_tldr_cn": "现有4比特量化方法通过SVD分解权重矩阵为低秩和残差分量，但分解目标不是最小化量化后误差。TwinQuant通过学习可量化的子空间分解，并联合优化残差和低秩分量的后量化误差，在保持4比特压缩率的同时显著提升了模型精度。实验表明，TwinQuant在多种LLM上优于现有4比特量化方法，实现了更好的精度-效率平衡。",
+      "llm_tldr": "现有4比特量化方法通过SVD分解权重矩阵为低秩和残差分量，但分解目标不是最小化量化后误差。TwinQuant通过学习可量化的子空间分解，并联合优化残差和低秩分量的后量化误差，在保持4比特压缩率的同时显著提升了模型精度。实验表明，TwinQuant在多种LLM上优于现有4比特量化方法，实现了更好的精度-效率平衡。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "large language model inference acceleration",
+      "matched_requirement_id": "req-2",
+      "selection_source": "carryover_cache",
+      "paper_id": "2606.01556v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.04238v1",
+      "source": "arxiv",
+      "title": "Recover-LoRA for Aggressive Quantization: Reclaiming Accuracy in 2-Bit Language Models via Low-Rank Adaptation with Knowledge Distillation on Synthetic Data",
+      "abstract": "Aggressive weight quantization to 2-bit precision offers substantial throughput and memory gains for large language model (LLM) inference, but typically incurs severe accuracy degradation. These gains are particularly relevant for edge and on-device deployment, where memory capacity and bandwidth are primary constraints. In this work, we extend Recover-LoRA -- a lightweight, data-free accuracy recovery method originally developed for general model weight corruption -- to the setting of ultra-low-bit quantization. We propose a selective mixed-precision strategy in which only gate and up projection layers of the MLP are quantized to 2-bit (W2), while all other linear layers remain at higher precision, yielding a mixed-precision GateUp configuration. We demonstrate via roofline analysis across three model families (4B--20B) and two hardware platforms that a W4/W2-GateUp deployment (4-bit base with 2-bit gate/up) delivers 7.5--23.3\\% TPS improvement over uniform W4 depending on model and context length, while confining quantization error to a predictable subset of layers. We then apply Recover-LoRA -- training low-rank adapters on the quantized layers via logit distillation with synthetic data -- to recover accuracy lost from 2-bit quantization of the gate and up layers. In a case study on Qwen3-4B, Recover-LoRA achieves 80--95\\% accuracy recovery on 9 of 12 benchmarks, using only 10k synthetic training samples and no labeled data. We further demonstrate that synthetic data performs comparably to curated labeled data for distillation-based recovery, and that recovery generalizes to out-of-distribution evaluation tasks. Our results present Recover-LoRA as a practical post-quantization accuracy recovery tool for aggressive weight compression in deployment settings.",
+      "authors": [
+        "Devleena Das",
+        "Rajeev Patwari",
+        "Elliott Delaye",
+        "Ashish Sirasao"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-06-02T21:37:56+00:00",
+      "link": "https://arxiv.org/pdf/2606.04238v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "aggressive 2-bit quantization improves LLM inference throughput",
+      "llm_evidence_cn": "激进2比特量化提升LLM推理吞吐量",
+      "llm_evidence": "激进2比特量化提升LLM推理吞吐量",
+      "canonical_evidence": "激进2比特量化提升LLM推理吞吐量",
+      "llm_tldr_en": "Recover-LoRA restores accuracy of 2-bit quantized LLMs, enabling efficient inference.",
+      "llm_tldr_cn": "2比特量化可大幅提升LLM推理吞吐并降低显存，但精度严重下降。本文扩展Recover-LoRA方法，提出选择性混合精度策略（仅量化门控和上投影层为2比特），结合知识蒸馏恢复精度。在减少模型体积的同时，保持接近全精度的性能，适合边缘部署。",
+      "llm_tldr": "2比特量化可大幅提升LLM推理吞吐并降低显存，但精度严重下降。本文扩展Recover-LoRA方法，提出选择性混合精度策略（仅量化门控和上投影层为2比特），结合知识蒸馏恢复精度。在减少模型体积的同时，保持接近全精度的性能，适合边缘部署。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "large language model inference acceleration",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.10650v1",
+      "source": "arxiv",
+      "title": "Dynamic Linear Attention",
+      "abstract": "The scalability of Large Language Models (LLMs) to long contexts is fundamentally constrained by the quadratic complexity of standard attention, motivating the adoption of linear attention mechanisms with sub-quadratic cost. To improve representation capacity under long contexts, recent approaches organize memory in a multi-state manner. However, existing multi-state linear attention methods rely on fixed state merging policies that cannot adapt to dynamically varying token importance, irreversibly obscuring critical tokens and causing severe error accumulation over long sequences. To address this limitation, we propose DLA, a dynamic memory modeling framework for multi-state linear attention. DLA introduces (i) Information-Aware Dynamic State Merging, which adaptively determines state boundaries based on token-level information variation, preserving high-resolution representations around semantic transitions while aggressively summarizing stable regions, and (ii) Capacity-Bounded Memory Modeling, which maintains a fixed-size, chronologically ordered state cache by selectively merging adjacent low-information states to control memory growth with minimal information loss. We pre-train DLA on two different linear attention models and evaluate on 16 datasets across three categories. Experimental results demonstrate the superiority of DLA over state-of-the-art.",
+      "authors": [
+        "Xin Wang",
+        "Hui Shen",
+        "Boyuan Zheng",
+        "Xueshen Liu",
+        "Minkyoung Cho",
+        "Zhongwei Wan",
+        "Zesen Zhao",
+        "Zhuoqing Mao",
+        "Shen Yan",
+        "Mi Zhang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-06-09T09:57:48+00:00",
+      "link": "https://arxiv.org/pdf/2606.10650v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "dynamic linear attention reduces quadratic complexity for LLM inference",
+      "llm_evidence_cn": "动态线性注意力降低LLM推理的二次复杂度",
+      "llm_evidence": "动态线性注意力降低LLM推理的二次复杂度",
+      "canonical_evidence": "动态线性注意力降低LLM推理的二次复杂度",
+      "llm_tldr_en": "DLA introduces dynamic state merging for linear attention, improving long-context efficiency.",
+      "llm_tldr_cn": "线性注意力可突破标准注意力的二次复杂度，但现有方法使用固定状态合并策略，无法适应令牌重要性动态变化。本文提出动态线性注意力（DLA），引入信息感知动态状态合并和自适应状态边界，减少长序列中的错误累积。该方法在保持线性复杂度同时提升长上下文建模能力，有助于加速LLM推理。",
+      "llm_tldr": "线性注意力可突破标准注意力的二次复杂度，但现有方法使用固定状态合并策略，无法适应令牌重要性动态变化。本文提出动态线性注意力（DLA），引入信息感知动态状态合并和自适应状态边界，减少长序列中的错误累积。该方法在保持线性复杂度同时提升长上下文建模能力，有助于加速LLM推理。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "large language model inference acceleration",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2606.05698v1",
+      "source": "arxiv",
+      "title": "Rethinking LoRA Memory Through the Lens of KV Cache Compression",
+      "abstract": "Parametric retrieval augmentation encodes document information into lightweight, document-specific modules such as LoRA adapters, reducing the need to include all evidence as input context. However, it remains unclear how this parameter-side memory interacts with context-side memory stored in the KV cache. We study this interaction in document-level question answering by progressively evicting document key-value states and measuring when a document LoRA contributes beyond the retained context. We find that document LoRA adds little when the KV cache is largely intact, but becomes increasingly useful under aggressive compression, recovering 13-21 ROUGE-L points when no document context remains. The gain is largest when the base model encodes the document, and the adapter is applied only during answer generation, suggesting that document LoRA is better understood as decoding-time parametric memory than as a document encoder. Finally, QA-style supervision produces substantially stronger adapters than raw-context next-token-prediction. These results position document LoRA as a complementary memory channel whose value emerges precisely when context-side evidence is scarce.",
+      "authors": [
+        "Chunsheng Zuo",
+        "Liaoyaqi Wang",
+        "William Jurayj",
+        "William Fleshman",
+        "Benjamin Van Durme"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-06-04T04:35:45+00:00",
+      "link": "https://arxiv.org/pdf/2606.05698v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "KV cache compression interaction with LoRA memory",
+      "llm_evidence_cn": "KV缓存压缩与LoRA内存的交互研究",
+      "llm_evidence": "KV缓存压缩与LoRA内存的交互研究",
+      "canonical_evidence": "KV缓存压缩与LoRA内存的交互研究",
+      "llm_tldr_en": "Studies how KV cache compression affects the utility of parametric memory (LoRA) in document QA, showing LoRA becomes crucial under aggressive compression.",
+      "llm_tldr_cn": "参数化检索增强用LoRA存储文档信息，但与KV缓存内存相互作用。本文在文档问答中逐步丢弃KV状态，发现KV缓存完整时LoRA贡献小，但在强压缩下可恢复13-21 ROUGE-L点，揭示了压缩程度对记忆来源的影响。",
+      "llm_tldr": "参数化检索增强用LoRA存储文档信息，但与KV缓存内存相互作用。本文在文档问答中逐步丢弃KV状态，发现KV缓存完整时LoRA贡献小，但在强压缩下可恢复13-21 ROUGE-L点，揭示了压缩程度对记忆来源的影响。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "KV cache compression techniques for reducing memory in large language model inference",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2606.05698v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.04945v1",
+      "source": "arxiv",
+      "title": "STaR-Quant: State-Time Consistent Post-Training Quantization for Diffusion Large Language Models",
+      "abstract": "Diffusion large language models (DLLMs) have recently emerged as a promising alternative to autoregressive LLMs by generating text through iterative masked denoising with bidirectional context. However, their large model sizes and iterative denoising process introduce substantial memory and computational overhead, motivating post-training quantization for efficient deployment. In this paper, we identify two key challenges for low-bit DLLM quantization: state-dependent activation disparity and temporal error accumulation. Masked and unmasked tokens exhibit different activation distributions within each denoising step, while quantization errors can accumulate across steps during iterative decoding. To address these challenges, we propose STaR-Quant, a state-time consistent PTQ framework for DLLMs. STaR-Quant introduces State-Guided Activation Transformation (SGAT) to assign masked and unmasked tokens to different activation transformation spaces with a unified static weight-side transformation. It further introduces Temporal Attention Compensation (TAC) to correct the quantized attention representation via a lightweight block-diagonal affine mapping. Experiments on representative DLLMs demonstrate that STaR-Quant consistently improves low-bit weight-activation quantization over strong PTQ baselines, while delivering up to 1.69x speedup and 3.14x memory saving over FP16 deployment.",
+      "authors": [
+        "Xin Yan",
+        "Aqiang Wang",
+        "Zhenglin Wan",
+        "Xingrui Yuand Ivor Tsang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-06-03T14:34:35+00:00",
+      "link": "https://arxiv.org/pdf/2606.04945v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Post-training quantization for diffusion LLM inference acceleration",
+      "llm_evidence_cn": "面向扩散大语言模型的后训练量化加速推理",
+      "llm_evidence": "面向扩散大语言模型的后训练量化加速推理",
+      "canonical_evidence": "面向扩散大语言模型的后训练量化加速推理",
+      "llm_tldr_en": "STaR-Quant addresses state-dependent activation disparity and temporal error accumulation in low-bit quantization of diffusion LLMs, enabling efficient deployment.",
+      "llm_tldr_cn": "扩散语言模型因迭代去噪和大模型尺寸带来内存与计算开销。本文识别出低比特量化中的两个关键挑战：状态相关激活差异和时间误差累积。提出STaR-Quant，通过状态一致量化和时间误差补偿，在保持生成质量的同时，实现了对扩散LLM的有效量化压缩，加速推理。",
+      "llm_tldr": "扩散语言模型因迭代去噪和大模型尺寸带来内存与计算开销。本文识别出低比特量化中的两个关键挑战：状态相关激活差异和时间误差累积。提出STaR-Quant，通过状态一致量化和时间误差补偿，在保持生成质量的同时，实现了对扩散LLM的有效量化压缩，加速推理。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "large language model inference acceleration",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.09079v2",
+      "source": "arxiv",
+      "title": "FlashMemory-DeepSeek-V4: Lightning Index Ultra-Long Context via Lookahead Sparse Attention",
+      "abstract": "Conventional LLMs keep the full KV cache loaded during decoding, causing a severe GPU memory bottleneck for ultra-long context serving. In this report, we propose Lookahead Sparse Attention (LSA), a novel inference paradigm powered by a Neural Memory Indexer built upon the DeepSeek-V4 architecture. Rather than passively attending to all historical tokens, LSA proactively predicts future context demands and preserves only the query-critical KV chunks in the GPU memory. Crucially, we instantiate this architecture via a backbone-free decoupled training strategy. By formulating the indexer as a standard dual-encoder architecture, we train it independently using standard retrieval training frameworks without ever loading the massive backbone model into GPU memory.   We demonstrate that this \"less is more\" paradigm significantly maximizes serving efficiency while acting as an effective attention denoiser in tasks that rely on long-term global memory. Across primary long-context evaluation suites (e.g., LongBench-v2, LongMemEval, and RULER), FM-DS-V4 compresses the average physical KV cache footprint down to merely 13.5% of the full-context baseline, while consistently preserving or slightly elevating downstream accuracy (+0.6% absolute margin on average). Crucially, at extreme 500K scales, FlashMemory suppresses the physical KV cache overhead by over 90% without destabilizing the backbone's core reasoning capacities.",
+      "authors": [
+        "Yan Wang",
+        "Qifan Zhang",
+        "Jiachen Yu",
+        "Tian Liang",
+        "Dongyang Ma",
+        "Xiang Hu",
+        "Zibo Lin",
+        "Chunyang Li",
+        "Zhichao Wang",
+        "Miao Peng",
+        "Nuo Chen",
+        "Jia Li",
+        "Yujiu Yang",
+        "Haitao Mi",
+        "Dong Yu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-06-08T06:25:54+00:00",
+      "link": "https://arxiv.org/pdf/2606.09079v2",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Proposes Lookahead Sparse Attention to reduce KV cache memory by proactively retaining only query-critical chunks.",
+      "llm_evidence_cn": "提出前瞻稀疏注意力，通过主动保留仅查询关键块来减少KV缓存内存。",
+      "llm_evidence": "提出前瞻稀疏注意力，通过主动保留仅查询关键块来减少KV缓存内存。",
+      "canonical_evidence": "提出前瞻稀疏注意力，通过主动保留仅查询关键块来减少KV缓存内存。",
+      "llm_tldr_en": "Lookahead Sparse Attention (LSA) reduces KV cache memory for ultra-long context LLM inference using a learnable indexer to predict future attention needs.",
+      "llm_tldr_cn": "传统LLM解码时加载全部KV缓存导致超长上下文场景下的GPU内存瓶颈。本文提出前瞻稀疏注意力（LSA），结合神经记忆索引器，仅保留查询关键KV块，显着减少内存使用。通过解耦训练策略，在不加载巨大主干网络的情况下训练索引器，大幅提升了超长上下文推理效率。该方法直接针对KV缓存压缩优化，有效缓解了内存瓶颈。",
+      "llm_tldr": "传统LLM解码时加载全部KV缓存导致超长上下文场景下的GPU内存瓶颈。本文提出前瞻稀疏注意力（LSA），结合神经记忆索引器，仅保留查询关键KV块，显着减少内存使用。通过解耦训练策略，在不加载巨大主干网络的情况下训练索引器，大幅提升了超长上下文推理效率。该方法直接针对KV缓存压缩优化，有效缓解了内存瓶颈。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "KV cache compression techniques for reducing memory in large language model inference",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.04945v2",
+      "source": "arxiv",
+      "title": "STaR-Quant: State-Time Consistent Post-Training Quantization for Diffusion Large Language Models",
+      "abstract": "Diffusion large language models (DLLMs) have recently emerged as a promising alternative to autoregressive LLMs by generating text through iterative masked denoising with bidirectional context. However, their large model sizes and iterative denoising process introduce substantial memory and computational overhead, motivating post-training quantization for efficient deployment. In this paper, we identify two key challenges for low-bit DLLM quantization: state-dependent activation disparity and temporal error accumulation. Masked and unmasked tokens exhibit different activation distributions within each denoising step, while quantization errors can accumulate across steps during iterative decoding. To address these challenges, we propose STaR-Quant, a state-time consistent PTQ framework for DLLMs. STaR-Quant introduces State-Guided Activation Transformation (SGAT) to assign masked and unmasked tokens to different activation transformation spaces with a unified static weight-side transformation. It further introduces Temporal Attention Compensation (TAC) to correct the quantized attention representation via a lightweight block-diagonal affine mapping. Experiments on representative DLLMs demonstrate that STaR-Quant consistently improves low-bit weight-activation quantization over strong PTQ baselines, while delivering up to 1.69x speedup and 3.14x memory saving over FP16 deployment.",
+      "authors": [
+        "Xin Yan",
+        "Aqiang Wang",
+        "Zhenglin Wan",
+        "Xingrui Yu",
+        "Ivor Tsang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-06-03T14:34:35+00:00",
+      "link": "https://arxiv.org/pdf/2606.04945v2",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "quantization for diffusion LLM inference acceleration",
+      "llm_evidence_cn": "扩散大模型量化加速推理",
+      "llm_evidence": "扩散大模型量化加速推理",
+      "canonical_evidence": "扩散大模型量化加速推理",
+      "llm_tldr_en": "STaR-Quant addresses state-dependent and temporal quantization errors in diffusion LLMs, enabling low-bit post-training quantization for faster inference.",
+      "llm_tldr_cn": "该论文针对扩散大模型推理中状态依赖激活差异和时间误差累积问题，提出STaR-Quant量化方法，通过状态时间一致处理，实现低比特量化并加速迭代解码过程。",
+      "llm_tldr": "该论文针对扩散大模型推理中状态依赖激活差异和时间误差累积问题，提出STaR-Quant量化方法，通过状态时间一致处理，实现低比特量化并加速迭代解码过程。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "large language model inference acceleration",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.10520v1",
+      "source": "arxiv",
+      "title": "UniSVQ: 2-bit Unified Scalar-Vector Quantization",
+      "abstract": "Post-training quantization at the 2-bit level enables low-cost deployment and inference acceleration for large language models (LLMs). Scalar quantization (SQ) and vector quantization (VQ) are two primary quantization methods, however, the former suffers from significant performance degradation, and the latter incurs computational and storage overhead. We propose UniSVQ, a unified 2-bit quantization framework that bridges scalar and vector quantization by parameterizing codewords as an affine transform of integer lattices. This structure preserves compatibility with optimized integer kernels while retaining much of VQ's flexibility. We further introduce a data-driven block-wise fine-tuning strategy to directly minimize quantization reconstruction error. Extensive experiments across multiple LLM families and zero-shot benchmarks demonstrate that UniSVQ consistently outperforms state-of-the-art SQ methods and achieves performance comparable to advanced VQ methods, while providing higher inference throughput.",
+      "authors": [
+        "Haoyu Wang",
+        "Haiyan Zhao",
+        "Xingyu Yu",
+        "Zhangyang Yao",
+        "Xu Han",
+        "Zhiyuan Liu",
+        "Maosong Sun"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-06-09T07:50:52+00:00",
+      "link": "https://arxiv.org/pdf/2606.10520v1",
+      "tags": [
+        "keyword:inf-accel",
+        "query:inf-accel"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "2-bit unified scalar-vector quantization for LLM inference acceleration",
+      "llm_evidence_cn": "2位统一标量-向量量化用于大模型推理加速",
+      "llm_evidence": "2位统一标量-向量量化用于大模型推理加速",
+      "canonical_evidence": "2位统一标量-向量量化用于大模型推理加速",
+      "llm_tldr_en": "UniSVQ unifies scalar and vector quantization at 2-bit for LLMs, parameterizing codewords as affine transforms of integer lattices to maintain hardware efficiency while achieving high compression.",
+      "llm_tldr_cn": "后训练量化是LLM高效部署的关键，但2位量化面临性能与效率的权衡。本文提出UniSVQ，将标量量化与向量量化统一为整数格点的仿射变换，兼容优化核的同时保持灵活性。结合数据驱动的块级微调，在多种模型上以2位精度实现了接近全精度的性能，显著降低了模型大小和推理开销。",
+      "llm_tldr": "后训练量化是LLM高效部署的关键，但2位量化面临性能与效率的权衡。本文提出UniSVQ，将标量量化与向量量化统一为整数格点的仿射变换，兼容优化核的同时保持灵活性。结合数据驱动的块级微调，在多种模型上以2位精度实现了接近全精度的性能，显著降低了模型大小和推理开销。",
+      "llm_tags": [
+        "query:inf-accel"
+      ],
+      "matched_query_tag": "query:inf-accel",
+      "matched_query_text": "large language model inference acceleration",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    }
+  ]
+}
